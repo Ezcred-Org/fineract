@@ -22,11 +22,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -40,9 +38,8 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
-
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.codes.domain.CodeValue;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
@@ -60,12 +57,13 @@ import org.apache.fineract.portfolio.group.exception.ClientNotInGroupException;
 import org.apache.fineract.portfolio.group.exception.GroupExistsInCenterException;
 import org.apache.fineract.portfolio.group.exception.GroupNotExistsInCenterException;
 import org.apache.fineract.portfolio.group.exception.InvalidGroupStateTransitionException;
+import org.apache.fineract.portfolio.loanaccount.domain.GroupLoanIndividualMonitoringAccount;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_group")
-public final class Group extends AbstractPersistableCustom<Long> {
+public final class Group extends AbstractPersistableCustom {
 
     @Column(name = "external_id", length = 100, unique = true)
     private String externalId;
@@ -108,7 +106,7 @@ public final class Group extends AbstractPersistableCustom<Long> {
 
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "parent_id")
-    private List<Group> groupMembers = new LinkedList<>();
+    private List<Group> groupMembers = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(name = "m_group_client", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "client_id"))
@@ -122,7 +120,7 @@ public final class Group extends AbstractPersistableCustom<Long> {
     @Temporal(TemporalType.DATE)
     private Date closureDate;
 
-    @ManyToOne(optional = true, fetch=FetchType.LAZY)
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "closedon_userid", nullable = true)
     private AppUser closedBy;
 
@@ -130,34 +128,35 @@ public final class Group extends AbstractPersistableCustom<Long> {
     @Temporal(TemporalType.DATE)
     private Date submittedOnDate;
 
-    @ManyToOne(optional = true, fetch=FetchType.LAZY)
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "submittedon_userid", nullable = true)
     private AppUser submittedBy;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "center", orphanRemoval = true)
     private Set<StaffAssignmentHistory> staffHistory;
-    
+
     @Column(name = "account_no", length = 20, unique = true, nullable = false)
     private String accountNumber;
-    
+
     @Transient
     private boolean accountNumberRequiresAutoGeneration = false;
 
-    @OneToMany(mappedBy="group",cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "group", cascade = CascadeType.REMOVE)
     private Set<GroupRole> groupRole;
 
+    @OneToMany(mappedBy = "group")
+    private List<GroupLoanIndividualMonitoringAccount> glimLoan;
 
     // JPA default constructor for entity
-    protected Group() {
+    Group() {
         this.name = null;
         this.externalId = null;
         this.clientMembers = new HashSet<>();
     }
 
-    public static Group newGroup(final Office office, final Staff staff, final Group parent, final GroupLevel groupLevel,
-            final String name, final String externalId, final boolean active, final LocalDate activationDate,
-            final Set<Client> clientMembers, final Set<Group> groupMembers, final LocalDate submittedOnDate, final AppUser currentUser,
-            final String accountNo) {
+    public static Group newGroup(final Office office, final Staff staff, final Group parent, final GroupLevel groupLevel, final String name,
+            final String externalId, final boolean active, final LocalDate activationDate, final Set<Client> clientMembers,
+            final Set<Group> groupMembers, final LocalDate submittedOnDate, final AppUser currentUser, final String accountNo) {
 
         // By default new group is created in PENDING status, unless explicitly
         // status is set to active
@@ -167,7 +166,7 @@ public final class Group extends AbstractPersistableCustom<Long> {
             status = GroupingTypeStatus.ACTIVE;
             groupActivationDate = activationDate;
         }
-        
+
         return new Group(office, staff, parent, groupLevel, name, externalId, status, groupActivationDate, clientMembers, groupMembers,
                 submittedOnDate, currentUser, accountNo);
     }
@@ -186,7 +185,7 @@ public final class Group extends AbstractPersistableCustom<Long> {
         if (parent != null) {
             this.parent.addChild(this);
         }
-        
+
         if (StringUtils.isBlank(accountNo)) {
             this.accountNumber = new RandomPasswordGenerator(19).generate();
             this.accountNumberRequiresAutoGeneration = true;
@@ -216,8 +215,7 @@ public final class Group extends AbstractPersistableCustom<Long> {
         associateClients(clientMembers);
 
         /*
-         * Always keep status change at the bottom, as status change rule
-         * depends on the attribute's value
+         * Always keep status change at the bottom, as status change rule depends on the attribute's value
          */
 
         setStatus(activationDate, currentUser, status, dataValidationErrors);
@@ -236,7 +234,8 @@ public final class Group extends AbstractPersistableCustom<Long> {
 
     }
 
-    private void activate(final AppUser currentUser, final LocalDate activationLocalDate, final List<ApiParameterError> dataValidationErrors) {
+    private void activate(final AppUser currentUser, final LocalDate activationLocalDate,
+            final List<ApiParameterError> dataValidationErrors) {
 
         validateStatusNotEqualToActiveAndLogError(dataValidationErrors);
         if (dataValidationErrors.isEmpty()) {
@@ -334,22 +333,34 @@ public final class Group extends AbstractPersistableCustom<Long> {
             actualChanges.put(GroupingTypesApiConstants.localeParamName, localeAsInput);
 
             final LocalDate newValue = command.localDateValueOfParameterNamed(GroupingTypesApiConstants.activationDateParamName);
-			if (newValue != null) {
-				this.activationDate = newValue.toDate();
-			}
+            if (newValue != null) {
+                this.activationDate = newValue.toDate();
+            }
         }
-        
+
         if (command.isChangeInStringParameterNamed(GroupingTypesApiConstants.accountNoParamName, this.accountNumber)) {
             final String newValue = command.stringValueOfParameterNamed(GroupingTypesApiConstants.accountNoParamName);
             actualChanges.put(GroupingTypesApiConstants.accountNoParamName, newValue);
             this.accountNumber = StringUtils.defaultIfEmpty(newValue, null);
         }
 
+        if (command.isChangeInLocalDateParameterNamed(GroupingTypesApiConstants.submittedOnDateParamName, getSubmittedOnDate())) {
+            final String valueAsInput = command.stringValueOfParameterNamed(GroupingTypesApiConstants.submittedOnDateParamName);
+            actualChanges.put(GroupingTypesApiConstants.submittedOnDateParamName, valueAsInput);
+            actualChanges.put(GroupingTypesApiConstants.dateFormatParamName, dateFormatAsInput);
+            actualChanges.put(GroupingTypesApiConstants.localeParamName, localeAsInput);
+
+            final LocalDate newValue = command.localDateValueOfParameterNamed(GroupingTypesApiConstants.submittedOnDateParamName);
+            if (newValue != null) {
+                this.submittedOnDate = newValue.toDate();
+            }
+        }
+
         return actualChanges;
     }
 
     public LocalDate getSubmittedOnDate() {
-        return (LocalDate) ObjectUtils.defaultIfNull(new LocalDate(this.submittedOnDate), null);
+        return ObjectUtils.defaultIfNull(new LocalDate(this.submittedOnDate), null);
     }
 
     public LocalDate getActivationLocalDate() {
@@ -363,7 +374,9 @@ public final class Group extends AbstractPersistableCustom<Long> {
     public List<String> associateClients(final Set<Client> clientMembersSet) {
         final List<String> differences = new ArrayList<>();
         for (final Client client : clientMembersSet) {
-            if (hasClientAsMember(client)) { throw new ClientExistInGroupException(client.getId(), getId()); }
+            if (hasClientAsMember(client)) {
+                throw new ClientExistInGroupException(client.getId(), getId());
+            }
             this.clientMembers.add(client);
             differences.add(client.getId().toString());
         }
@@ -389,24 +402,24 @@ public final class Group extends AbstractPersistableCustom<Long> {
         return this.clientMembers.contains(client);
     }
 
-	public void generateHierarchy() {
-		if (this.parent != null) {
-			this.hierarchy = this.parent.hierarchyOf(getId());
-		} else {
-			this.hierarchy = "." + getId() + ".";
-			for (Group group : this.groupMembers) {
-				group.setParent(this);
-				group.generateHierarchy();
-			}
-		}
-	}
-    
-	public void resetHierarchy() {
-			this.hierarchy = "." + this.getId();
-	}
-    
+    public void generateHierarchy() {
+        if (this.parent != null) {
+            this.hierarchy = this.parent.hierarchyOf(getId());
+        } else {
+            this.hierarchy = "." + getId() + ".";
+            for (Group group : this.groupMembers) {
+                group.setParent(this);
+                group.generateHierarchy();
+            }
+        }
+    }
+
+    public void resetHierarchy() {
+        this.hierarchy = "." + this.getId();
+    }
+
     private String hierarchyOf(final Long id) {
-    	return this.hierarchy + id.toString() + ".";
+        return this.hierarchy + id.toString() + ".";
     }
 
     public boolean isOfficeIdentifiedBy(final Long officeId) {
@@ -424,7 +437,7 @@ public final class Group extends AbstractPersistableCustom<Long> {
         }
         return staffId;
     }
-   
+
     private void addChild(final Group group) {
         this.groupMembers.add(group);
     }
@@ -492,7 +505,9 @@ public final class Group extends AbstractPersistableCustom<Long> {
     public boolean isChildClient(final Long clientId) {
         if (clientId != null && this.clientMembers != null && !this.clientMembers.isEmpty()) {
             for (final Client client : this.clientMembers) {
-                if (client.getId().equals(clientId)) { return true; }
+                if (client.getId().equals(clientId)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -511,7 +526,8 @@ public final class Group extends AbstractPersistableCustom<Long> {
 
         if (isClosed()) {
             final String errorMessage = "Group with identifier " + getId() + " is alread closed.";
-            throw new InvalidGroupStateTransitionException(this.groupLevel.getLevelName(), "close", "already.closed", errorMessage, getId());
+            throw new InvalidGroupStateTransitionException(this.groupLevel.getLevelName(), "close", "already.closed", errorMessage,
+                    getId());
         }
 
         if (isNotPending() && getActivationLocalDate().isAfter(closureDate)) {
@@ -529,14 +545,18 @@ public final class Group extends AbstractPersistableCustom<Long> {
 
     public boolean hasActiveClients() {
         for (final Client client : this.clientMembers) {
-            if (!client.isClosed()) { return true; }
+            if (!client.isClosed()) {
+                return true;
+            }
         }
         return false;
     }
 
     public boolean hasActiveGroups() {
         for (final Group group : this.groupMembers) {
-            if (!group.isClosed()) { return true; }
+            if (!group.isClosed()) {
+                return true;
+            }
         }
         return false;
     }
@@ -546,7 +566,9 @@ public final class Group extends AbstractPersistableCustom<Long> {
     }
 
     public boolean hasStaff() {
-        if (this.staff != null) { return true; }
+        if (this.staff != null) {
+            return true;
+        }
         return false;
     }
 
@@ -561,18 +583,20 @@ public final class Group extends AbstractPersistableCustom<Long> {
                         group.getId());
             }
 
-            if (hasGroupAsMember(group)) { throw new GroupExistsInCenterException(getId(), group.getId()); }
+            if (hasGroupAsMember(group)) {
+                throw new GroupExistsInCenterException(getId(), group.getId());
+            }
 
             if (group.isChildGroup()) {
                 final String defaultUserMessage = "Group is already associated with a center";
-                throw new GeneralPlatformDomainRuleException("error.msg.group.already.associated.with.center", defaultUserMessage, group
-                        .getParent().getId(), group.getId());
+                throw new GeneralPlatformDomainRuleException("error.msg.group.already.associated.with.center", defaultUserMessage,
+                        group.getParent().getId(), group.getId());
             }
 
             this.groupMembers.add(group);
             differences.add(group.getId().toString());
             group.setParent(this);
-    		group.generateHierarchy();
+            group.generateHierarchy();
         }
 
         return differences;
@@ -585,7 +609,7 @@ public final class Group extends AbstractPersistableCustom<Long> {
             if (hasGroupAsMember(group)) {
                 this.groupMembers.remove(group);
                 differences.add(group.getId().toString());
-    			group.resetHierarchy();
+                group.resetHierarchy();
             } else {
                 throw new GroupNotExistsInCenterException(group.getId(), getId());
             }
@@ -596,7 +620,9 @@ public final class Group extends AbstractPersistableCustom<Long> {
 
     public Boolean isGroupsClientCountWithinMinMaxRange(Integer minClients, Integer maxClients) {
 
-        if (maxClients == null && minClients == null) { return true; }
+        if (maxClients == null && minClients == null) {
+            return true;
+        }
 
         // set minClients or maxClients to 0 if null
 
@@ -610,7 +636,9 @@ public final class Group extends AbstractPersistableCustom<Long> {
 
         Set<Client> activeClientMembers = getActiveClientMembers();
 
-        if (activeClientMembers.size() >= minClients && activeClientMembers.size() <= maxClients) { return true; }
+        if (activeClientMembers.size() >= minClients && activeClientMembers.size() <= maxClients) {
+            return true;
+        }
         return false;
     }
 
@@ -688,7 +716,9 @@ public final class Group extends AbstractPersistableCustom<Long> {
     }
 
     private void throwExceptionIfErrors(final List<ApiParameterError> dataValidationErrors) {
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 
     public Set<Client> getClientMembers() {
@@ -733,7 +763,7 @@ public final class Group extends AbstractPersistableCustom<Long> {
         }
         return latestRecordWithNoEndDate;
     }
-    
+
     public boolean isAccountNumberRequiresAutoGeneration() {
         return this.accountNumberRequiresAutoGeneration;
     }
@@ -741,15 +771,14 @@ public final class Group extends AbstractPersistableCustom<Long> {
     public void setAccountNumberRequiresAutoGeneration(final boolean accountNumberRequiresAutoGeneration) {
         this.accountNumberRequiresAutoGeneration = accountNumberRequiresAutoGeneration;
     }
-    
+
     public void updateAccountNo(final String accountIdentifier) {
         this.accountNumber = accountIdentifier;
         this.accountNumberRequiresAutoGeneration = false;
     }
 
-	public void setGroupMembers(List<Group> groupMembers) {
-		this.groupMembers = groupMembers;
-	}
-    
-    
+    public void setGroupMembers(List<Group> groupMembers) {
+        this.groupMembers = groupMembers;
+    }
+
 }

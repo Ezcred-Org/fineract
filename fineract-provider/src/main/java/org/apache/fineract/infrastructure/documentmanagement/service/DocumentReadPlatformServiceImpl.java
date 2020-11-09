@@ -21,7 +21,6 @@ package org.apache.fineract.infrastructure.documentmanagement.service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.documentmanagement.contentrepository.ContentRepository;
@@ -72,7 +71,7 @@ public class DocumentReadPlatformServiceImpl implements DocumentReadPlatformServ
             final ContentRepository contentRepository = this.contentRepositoryFactory.getRepository(documentData.storageType());
             return contentRepository.fetchFile(documentData);
         } catch (final EmptyResultDataAccessException e) {
-            throw new DocumentNotFoundException(entityType, entityId, documentId);
+            throw new DocumentNotFoundException(entityType, entityId, documentId, e);
         }
     }
 
@@ -82,7 +81,7 @@ public class DocumentReadPlatformServiceImpl implements DocumentReadPlatformServ
             final DocumentMapper mapper = new DocumentMapper(true, true);
             return fetchDocumentDetails(entityType, entityId, documentId, mapper);
         } catch (final EmptyResultDataAccessException e) {
-            throw new DocumentNotFoundException(entityType, entityId, documentId);
+            throw new DocumentNotFoundException(entityType, entityId, documentId, e);
         }
     }
 

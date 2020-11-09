@@ -30,29 +30,26 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class GmailBackedPlatformEmailService implements PlatformEmailService {
-	
-	private final ExternalServicesPropertiesReadPlatformService externalServicesReadPlatformService;
-	
-	@Autowired
-	public GmailBackedPlatformEmailService(final ExternalServicesPropertiesReadPlatformService externalServicesReadPlatformService){
-		this.externalServicesReadPlatformService = externalServicesReadPlatformService;
-	}
+
+    private final ExternalServicesPropertiesReadPlatformService externalServicesReadPlatformService;
+
+    @Autowired
+    public GmailBackedPlatformEmailService(final ExternalServicesPropertiesReadPlatformService externalServicesReadPlatformService) {
+        this.externalServicesReadPlatformService = externalServicesReadPlatformService;
+    }
 
     @Override
-    public void sendToUserAccount(String organisationName, String contactName,
-                                  String address, String username, String unencodedPassword) {
+    public void sendToUserAccount(String organisationName, String contactName, String address, String username, String unencodedPassword) {
 
-	    final String subject = "Welcome " + contactName + " to " + organisationName;
-	    final String body = "You are receiving this email as your email account: " +
-                address + " has being used to create a user account for an organisation named [" +
-                organisationName + "] on Mifos.\n" +
-                "You can login using the following credentials:\nusername: " + username + "\n" +
-                "password: " + unencodedPassword + "\n" +
-                "You must change this password upon first log in using Uppercase, Lowercase, number and character.\n" +
-                "Thank you and welcome to the organisation.";
+        final String subject = "Welcome " + contactName + " to " + organisationName;
+        final String body = "You are receiving this email as your email account: " + address
+                + " has being used to create a user account for an organisation named [" + organisationName + "] on Mifos.\n"
+                + "You can login using the following credentials:\nusername: " + username + "\n" + "password: " + unencodedPassword + "\n"
+                + "You must change this password upon first log in using Uppercase, Lowercase, number and character.\n"
+                + "Thank you and welcome to the organisation.";
 
-	    final EmailDetail emailDetail = new EmailDetail(subject, body, address, contactName);
-	    sendDefinedEmail(emailDetail);
+        final EmailDetail emailDetail = new EmailDetail(subject, body, address, contactName);
+        sendDefinedEmail(emailDetail);
 
     }
 
@@ -60,7 +57,6 @@ public class GmailBackedPlatformEmailService implements PlatformEmailService {
     public void sendDefinedEmail(EmailDetail emailDetails) {
         final Email email = new SimpleEmail();
         final SMTPCredentialsData smtpCredentialsData = this.externalServicesReadPlatformService.getSMTPCredentials();
-        final String authuserName = smtpCredentialsData.getUsername();
 
         final String authuser = smtpCredentialsData.getUsername();
         final String authpwd = smtpCredentialsData.getPassword();
@@ -71,10 +67,10 @@ public class GmailBackedPlatformEmailService implements PlatformEmailService {
         email.setHostName(smtpCredentialsData.getHost());
 
         try {
-            if(smtpCredentialsData.isUseTLS()){
+            if (smtpCredentialsData.isUseTLS()) {
                 email.getMailSession().getProperties().put("mail.smtp.starttls.enable", "true");
             }
-            email.setFrom(authuser, authuserName);
+            email.setFrom(smtpCredentialsData.getFromEmail(), smtpCredentialsData.getFromName());
 
             email.setSubject(emailDetails.getSubject());
             email.setMsg(emailDetails.getBody());

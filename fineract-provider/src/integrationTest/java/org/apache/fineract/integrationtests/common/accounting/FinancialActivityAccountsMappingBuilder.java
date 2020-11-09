@@ -18,11 +18,14 @@
  */
 package org.apache.fineract.integrationtests.common.accounting;
 
+import com.google.gson.Gson;
 import java.util.HashMap;
 
-import com.google.gson.Gson;
+public final class FinancialActivityAccountsMappingBuilder {
 
-public class FinancialActivityAccountsMappingBuilder {
+    private FinancialActivityAccountsMappingBuilder() {
+
+    }
 
     public static String build(Integer financialActivityId, Integer glAccountId) {
         final HashMap<String, Object> map = new HashMap<>();

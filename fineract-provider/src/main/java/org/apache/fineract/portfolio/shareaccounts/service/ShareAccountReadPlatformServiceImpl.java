@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
@@ -38,6 +37,7 @@ import org.apache.fineract.portfolio.accountdetails.data.ShareAccountSummaryData
 import org.apache.fineract.portfolio.accounts.constants.AccountsApiConstants;
 import org.apache.fineract.portfolio.accounts.constants.ShareAccountApiConstants;
 import org.apache.fineract.portfolio.accounts.data.AccountData;
+import org.apache.fineract.portfolio.accounts.exceptions.ShareAccountNotFoundException;
 import org.apache.fineract.portfolio.charge.data.ChargeData;
 import org.apache.fineract.portfolio.charge.service.ChargeReadPlatformService;
 import org.apache.fineract.portfolio.client.data.ClientData;
@@ -64,6 +64,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
@@ -81,7 +82,7 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
     private final JdbcTemplate jdbcTemplate;
     private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
     private final PaginationHelper<AccountData> shareAccountDataPaginationHelper = new PaginationHelper<>();
-    
+
     @Autowired
     public ShareAccountReadPlatformServiceImpl(final RoutingDataSource dataSource, final ApplicationContext applicationContext,
             final ChargeReadPlatformService chargeReadPlatformService,
@@ -120,7 +121,8 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
             final Collection<SavingsAccountData> clientSavingsAccounts = this.savingsAccountReadPlatformService
                     .retrieveActiveForLookup(clientId, DepositAccountType.SAVINGS_DEPOSIT, productData.getCurrency().code());
             toReturn = new ShareAccountData(client.id(), client.displayName(), productData.getCurrency(), charges, marketPrice,
-                    minimumActivePeriodFrequencyTypeOptions, lockinPeriodFrequencyTypeOptions, clientSavingsAccounts, productData.getNominaltShares());
+                    minimumActivePeriodFrequencyTypeOptions, lockinPeriodFrequencyTypeOptions, clientSavingsAccounts,
+                    productData.getNominaltShares());
         } else {
             Collection<ProductData> productOptions = service.retrieveAllForLookup();
             final Collection<ChargeData> chargeOptions = this.chargeReadPlatformService.retrieveSharesApplicableCharges();
@@ -148,18 +150,18 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
     public ShareAccountData retrieveOne(final Long id, final boolean includeTemplate) {
         Collection<ShareAccountChargeData> charges = this.shareAccountChargeReadPlatformService.retrieveAccountCharges(id, "active");
         Collection<ShareAccountTransactionData> purchasedShares = this.purchasedSharesReadPlatformService.retrievePurchasedShares(id);
-        
+
         ShareAccountMapper mapper = new ShareAccountMapper(charges, purchasedShares);
         String query = "select " + mapper.schema() + "where sa.id=?";
-        ShareAccountData data = (ShareAccountData)this.jdbcTemplate.queryForObject(query, mapper, new Object[] { id });
+        ShareAccountData data = (ShareAccountData) this.jdbcTemplate.queryForObject(query, mapper, new Object[] { id });
         String serviceName = "share" + ProductsApiConstants.READPLATFORM_NAME;
         ProductReadPlatformService service = (ProductReadPlatformService) this.applicationContext.getBean(serviceName);
         final ShareProductData productData = (ShareProductData) service.retrieveOne(data.getProductId(), false);
         final BigDecimal currentMarketPrice = deriveMarketPrice(productData);
         data.setCurrentMarketPrice(currentMarketPrice);
-        if(!includeTemplate) {
-            Collection<ShareAccountDividendData> dividends = this.retrieveAssociatedDividends(id) ;
-            data.setDividends(dividends);    
+        if (!includeTemplate) {
+            Collection<ShareAccountDividendData> dividends = this.retrieveAssociatedDividends(id);
+            data.setDividends(dividends);
         }
         if (includeTemplate) {
             final Collection<EnumOptionData> lockinPeriodFrequencyTypeOptions = this.shareProductDropdownReadPlatformService
@@ -183,9 +185,9 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
 
     @Override
     public Page<AccountData> retrieveAll(final Integer offSet, final Integer limit) {
-        final Collection<ShareAccountChargeData> charges = null ;
-        final Collection<ShareAccountTransactionData> purchasedShares = null ;
-        ShareAccountMapper mapper = new ShareAccountMapper(charges, purchasedShares) ;
+        final Collection<ShareAccountChargeData> charges = null;
+        final Collection<ShareAccountTransactionData> purchasedShares = null;
+        ShareAccountMapper mapper = new ShareAccountMapper(charges, purchasedShares);
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("select SQL_CALC_FOUND_ROWS ");
         sqlBuilder.append(mapper.schema());
@@ -198,7 +200,7 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
         }
 
         final String sqlCountRows = "SELECT FOUND_ROWS()";
-        Object[] whereClauseItemsitems = new Object[] {ShareAccountStatusType.ACTIVE.getValue()};
+        Object[] whereClauseItemsitems = new Object[] { ShareAccountStatusType.ACTIVE.getValue() };
         return this.shareAccountDataPaginationHelper.fetchPage(this.jdbcTemplate, sqlCountRows, sqlBuilder.toString(),
                 whereClauseItemsitems, mapper);
     }
@@ -242,18 +244,18 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
         return savingsCharges;
     }
 
-    private final static class ShareAccountMapper implements RowMapper<AccountData> {
+    private static final class ShareAccountMapper implements RowMapper<AccountData> {
 
         private final Collection<ShareAccountChargeData> charges;
         private final Collection<ShareAccountTransactionData> purchasedShares;
 
         private final String schema;
 
-        public ShareAccountMapper(final Collection<ShareAccountChargeData> charges, final Collection<ShareAccountTransactionData> purchasedShares) {
+        ShareAccountMapper(final Collection<ShareAccountChargeData> charges,
+                final Collection<ShareAccountTransactionData> purchasedShares) {
             this.charges = charges;
             this.purchasedShares = purchasedShares;
-            StringBuffer buff = new StringBuffer()
-                    .append("sa.id as id, sa.external_id as externalId, sa.status_enum as statusEnum, ")
+            StringBuilder buff = new StringBuilder().append("sa.id as id, sa.external_id as externalId, sa.status_enum as statusEnum, ")
                     .append("sa.savings_account_id, msa.account_no as savingsAccNo, ")
                     .append("c.id as clientId, c.display_name as clientName, ")
                     .append("sa.account_no as accountNo, sa.total_approved_shares as approvedShares, sa.total_pending_shares as pendingShares, ")
@@ -329,10 +331,10 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
             final String closedByLastname = rs.getString("closedByLastname");
 
             final ShareAccountApplicationTimelineData timeline = new ShareAccountApplicationTimelineData(submittedOnDate,
-                    submittedByUsername, submittedByFirstname, submittedByLastname, rejectedOnDate, rejectedByUsername,
-                    rejectedByFirstname, rejectedByLastname, approvedOnDate, approvedByUsername, approvedByFirstname, approvedByLastname,
-                    activatedOnDate, activatedByUsername, activatedByFirstname, activatedByLastname, closedOnDate, closedByUsername,
-                    closedByFirstname, closedByLastname);
+                    submittedByUsername, submittedByFirstname, submittedByLastname, rejectedOnDate, rejectedByUsername, rejectedByFirstname,
+                    rejectedByLastname, approvedOnDate, approvedByUsername, approvedByFirstname, approvedByLastname, activatedOnDate,
+                    activatedByUsername, activatedByFirstname, activatedByLastname, closedOnDate, closedByUsername, closedByFirstname,
+                    closedByLastname);
 
             final String currencyCode = rs.getString("currencyCode");
             final String currencyName = rs.getString("currencyName");
@@ -340,8 +342,8 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
             final String currencyDisplaySymbol = rs.getString("currencyDisplaySymbol");
             final Integer currencyDigits = JdbcSupport.getInteger(rs, "currencyDigits");
             final Integer inMultiplesOf = JdbcSupport.getInteger(rs, "inMultiplesOf");
-            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf,
-                    currencyDisplaySymbol, currencyNameCode);
+            final CurrencyData currency = new CurrencyData(currencyCode, currencyName, currencyDigits, inMultiplesOf, currencyDisplaySymbol,
+                    currencyNameCode);
 
             final Integer lockinPeriodFrequency = JdbcSupport.getInteger(rs, "lockinPeriod");
             EnumOptionData lockinPeriodFrequencyType = null;
@@ -361,8 +363,8 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
             final String shortProductName = null;
             final ShareAccountSummaryData summary = new ShareAccountSummaryData(id, accountNo, externalId, productId, productName,
                     shortProductName, status, currency, totalApprovedShares, totalPendingShares, timeline);
-            return new ShareAccountData(id, accountNo, externalId, savingsAccountId, savingsAccountNumber, clientId, clientName,
-                    productId, productName, status, timeline, currency, summary, charges, purchasedShares, lockinPeriodFrequency,
+            return new ShareAccountData(id, accountNo, externalId, savingsAccountId, savingsAccountNumber, clientId, clientName, productId,
+                    productName, status, timeline, currency, summary, charges, purchasedShares, lockinPeriodFrequency,
                     lockinPeriodFrequencyType, minimumActivePeriod, minimumActivePeriodType, allowdividendsforinactiveclients);
 
         }
@@ -372,12 +374,12 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
         }
     }
 
-    private final static class ShareAccountMapperForDividents implements RowMapper<ShareAccountData> {
+    private static final class ShareAccountMapperForDividents implements RowMapper<ShareAccountData> {
 
         private final String schema;
         final PurchasedSharesDataRowMapper purchasedSharesDataRowMapper = new PurchasedSharesDataRowMapper();
 
-        public ShareAccountMapperForDividents() {
+        ShareAccountMapperForDividents() {
             StringBuilder sb = new StringBuilder();
 
             sb.append("sa.id as id, sa.status_enum as statusEnum, ");
@@ -437,16 +439,16 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
         }
     }
 
-    private final static class PurchasedSharesDataRowMapper implements RowMapper<ShareAccountTransactionData> {
+    private static final class PurchasedSharesDataRowMapper implements RowMapper<ShareAccountTransactionData> {
 
         private final String schema;
 
-        public PurchasedSharesDataRowMapper() {
-            StringBuffer buff = new StringBuffer()
-                    .append("saps.id as purchasedId, saps.account_id as accountId, saps.transaction_date as transactionDate, saps.total_shares as purchasedShares, saps.unit_price as unitPrice, ")
+        PurchasedSharesDataRowMapper() {
+            StringBuilder buff = new StringBuilder().append(
+                    "saps.id as purchasedId, saps.account_id as accountId, saps.transaction_date as transactionDate, saps.total_shares as purchasedShares, saps.unit_price as unitPrice, ")
                     .append("saps.status_enum as purchaseStatus, saps.type_enum as purchaseType, saps.amount as amount, saps.charge_amount as chargeamount, ")
                     .append("saps.amount_paid as amountPaid ");
-            
+
             schema = buff.toString();
         }
 
@@ -464,8 +466,8 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
             final BigDecimal amount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "amount");
             final BigDecimal chargeAmount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "chargeamount");
             final BigDecimal amountPaid = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "amountPaid");
-            return new ShareAccountTransactionData(id, accountId, transactionDate, numberOfShares, purchasedPrice, statusEnum, typeEnum, amount,
-                    chargeAmount, amountPaid);
+            return new ShareAccountTransactionData(id, accountId, transactionDate, numberOfShares, purchasedPrice, statusEnum, typeEnum,
+                    amount, chargeAmount, amountPaid);
         }
 
         public String schema() {
@@ -473,12 +475,12 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
         }
     }
 
-    private final static class ShareAccountDividendRowMapper implements RowMapper<ShareAccountDividendData> {
+    private static final class ShareAccountDividendRowMapper implements RowMapper<ShareAccountDividendData> {
 
         private final String schema;
 
         ShareAccountDividendRowMapper() {
-            StringBuffer buff = new StringBuffer()
+            StringBuilder buff = new StringBuilder()
                     .append("spdp.created_date, sadd.id, sadd.amount, sadd.savings_transaction_id, sadd.status ")
                     .append(" from m_share_account_dividend_details sadd ")
                     .append("JOIN m_share_product_dividend_pay_out spdp ON spdp.id = sadd.dividend_pay_out_id ");
@@ -492,14 +494,24 @@ public class ShareAccountReadPlatformServiceImpl implements ShareAccountReadPlat
             final Date postedDate = JdbcSupport.getLocalDate(rs, "created_date").toDate();
             final BigDecimal postedAmount = JdbcSupport.getBigDecimalDefaultToNullIfZero(rs, "amount");
             final Long savingTransactionId = rs.getLong("savings_transaction_id");
-            final Integer status = rs.getInt("status") ;
-            final EnumOptionData statusEnum = SharesEnumerations.ShareAccountDividendStatusEnum(status);
+            final Integer status = rs.getInt("status");
+            final EnumOptionData statusEnum = SharesEnumerations.shareAccountDividendStatusEnum(status);
             final ShareAccountData shareAccountData = null;
             return new ShareAccountDividendData(id, postedDate, shareAccountData, postedAmount, statusEnum, savingTransactionId);
         }
 
         public String schema() {
             return this.schema;
+        }
+    }
+
+    @Override
+    public String retrieveAccountNumberByAccountId(Long accountId) {
+        try {
+            final String sql = "select s.account_no from m_share_account s where s.id = ?";
+            return this.jdbcTemplate.queryForObject(sql, new Object[] { accountId }, String.class);
+        } catch (final EmptyResultDataAccessException e) {
+            throw new ShareAccountNotFoundException(accountId, e);
         }
     }
 }

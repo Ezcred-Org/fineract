@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.loanaccount.service;
 
 import java.util.Collection;
 import java.util.Map;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.jobs.exception.JobExecutionException;
@@ -79,9 +78,9 @@ public interface LoanWritePlatformService {
 
     LoanTransaction initiateLoanTransfer(Loan loan, LocalDate transferDate);
 
-    LoanTransaction withdrawLoanTransfer(final Loan loan, LocalDate transferDate);
+    LoanTransaction withdrawLoanTransfer(Loan loan, LocalDate transferDate);
 
-    void rejectLoanTransfer(final Loan loan);
+    void rejectLoanTransfer(Loan loan);
 
     LoanTransaction acceptLoanTransfer(Loan loan, LocalDate transferDate, Office acceptedInOffice, Staff loanOfficer);
 
@@ -107,6 +106,12 @@ public interface LoanWritePlatformService {
 
     CommandProcessingResult undoLastLoanDisbursal(Long loanId, JsonCommand command);
 
-    CommandProcessingResult forecloseLoan(final Long loanId, JsonCommand command);
+    CommandProcessingResult forecloseLoan(Long loanId, JsonCommand command);
+
+    CommandProcessingResult disburseGLIMLoan(Long loanId, JsonCommand command);
+
+    CommandProcessingResult undoGLIMLoanDisbursal(Long loanId, JsonCommand command);
+
+    CommandProcessingResult makeGLIMLoanRepayment(Long loanId, JsonCommand command);
 
 }

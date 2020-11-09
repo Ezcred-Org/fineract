@@ -20,9 +20,7 @@ package org.apache.fineract.infrastructure.security.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import javax.sql.DataSource;
-
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenantConnection;
 import org.apache.fineract.infrastructure.security.exception.InvalidTenantIdentiferException;
@@ -35,8 +33,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 /**
- * A JDBC implementation of {@link BasicAuthTenantDetailsService} for loading a
- * tenants details by a <code>tenantIdentifier</code>.
+ * A JDBC implementation of {@link BasicAuthTenantDetailsService} for loading a tenants details by a
+ * <code>tenantIdentifier</code>.
  */
 @Service
 public class BasicAuthTenantDetailsServiceJdbc implements BasicAuthTenantDetailsService {
@@ -44,7 +42,7 @@ public class BasicAuthTenantDetailsServiceJdbc implements BasicAuthTenantDetails
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public BasicAuthTenantDetailsServiceJdbc(@Qualifier("tenantDataSourceJndi") final DataSource dataSource) {
+    public BasicAuthTenantDetailsServiceJdbc(@Qualifier("hikariTenantDataSource") final DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
@@ -69,9 +67,9 @@ public class BasicAuthTenantDetailsServiceJdbc implements BasicAuthTenantDetails
         }
 
         public String schema() {
-            if(this.isReport){
+            if (this.isReport) {
                 this.sqlBuilder.append(" on t.report_Id = ts.id");
-            }else{
+            } else {
                 this.sqlBuilder.append(" on t.oltp_Id = ts.id");
             }
             return this.sqlBuilder.toString();
@@ -125,7 +123,9 @@ public class BasicAuthTenantDetailsServiceJdbc implements BasicAuthTenantDetails
         private int bindValueInMinMaxRange(final int value, int min, int max) {
             if (value < min) {
                 return min;
-            } else if (value > max) { return max; }
+            } else if (value > max) {
+                return max;
+            }
             return value;
         }
     }
@@ -140,7 +140,7 @@ public class BasicAuthTenantDetailsServiceJdbc implements BasicAuthTenantDetails
 
             return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { tenantIdentifier });
         } catch (final EmptyResultDataAccessException e) {
-            throw new InvalidTenantIdentiferException("The tenant identifier: " + tenantIdentifier + " is not valid.");
+            throw new InvalidTenantIdentiferException("The tenant identifier: " + tenantIdentifier + " is not valid.", e);
         }
     }
 }

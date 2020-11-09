@@ -20,15 +20,13 @@ package org.apache.fineract.portfolio.loanaccount.loanschedule.domain;
 
 import java.math.BigDecimal;
 import java.util.Set;
-
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanInterestRecalcualtionAdditionalDetails;
 import org.apache.fineract.portfolio.loanaccount.loanschedule.data.LoanSchedulePeriodData;
 import org.joda.time.LocalDate;
 
 /**
- * Domain representation of a Loan Schedule Disbursement Period (not used for
- * persistence)
+ * Domain representation of a Loan Schedule Disbursement Period (not used for persistence)
  */
 public final class LoanScheduleModelDisbursementPeriod implements LoanScheduleModelPeriod {
 
@@ -124,6 +122,7 @@ public final class LoanScheduleModelDisbursementPeriod implements LoanScheduleMo
     public void addInterestAmount(@SuppressWarnings("unused") Money principalDue) {
         return;
     }
+
     @Override
     public Set<LoanInterestRecalcualtionAdditionalDetails> getLoanCompoundingDetails() {
         return null;

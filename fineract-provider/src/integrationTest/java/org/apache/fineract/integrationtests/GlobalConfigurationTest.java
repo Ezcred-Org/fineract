@@ -18,23 +18,23 @@
  */
 package org.apache.fineract.integrationtests;
 
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.http.ContentType;
+import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.ResponseSpecification;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import org.apache.fineract.integrationtests.common.CommonConstants;
 import org.apache.fineract.integrationtests.common.GlobalConfigurationHelper;
 import org.apache.fineract.integrationtests.common.Utils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import com.jayway.restassured.builder.RequestSpecBuilder;
-import com.jayway.restassured.builder.ResponseSpecBuilder;
-import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.specification.RequestSpecification;
-import com.jayway.restassured.specification.ResponseSpecification;
+@SuppressWarnings({ "unchecked" })
 
-@SuppressWarnings({ "rawtypes", "unchecked", "static-access" })
 public class GlobalConfigurationTest {
 
     private ResponseSpecification responseSpec;
@@ -42,7 +42,7 @@ public class GlobalConfigurationTest {
     private GlobalConfigurationHelper globalConfigurationHelper;
     private ResponseSpecification httpStatusForidden;
 
-    @Before
+    @BeforeEach
     public void setup() {
         Utils.initializeRESTAssured();
         this.requestSpec = new RequestSpecBuilder().setContentType(ContentType.JSON).build();
@@ -51,37 +51,42 @@ public class GlobalConfigurationTest {
         this.httpStatusForidden = new ResponseSpecBuilder().expectStatusCode(403).build();
     }
 
+    @AfterEach
+    public void tearDown() {
+        GlobalConfigurationHelper.resetAllDefaultGlobalConfigurations(this.requestSpec, this.responseSpec);
+        GlobalConfigurationHelper.verifyAllDefaultGlobalConfigurations(this.requestSpec, this.responseSpec);
+    }
+
     @Test
     public void testGlobalConfigurations() {
         this.globalConfigurationHelper = new GlobalConfigurationHelper(this.requestSpec, this.responseSpec);
 
         // Retrieving All Global Configuration details
-        final ArrayList<HashMap> globalConfig = this.globalConfigurationHelper.getAllGlobalConfigurations(this.requestSpec,
-                this.responseSpec);
-        Assert.assertNotNull(globalConfig);
+        final ArrayList<HashMap> globalConfig = GlobalConfigurationHelper.getAllGlobalConfigurations(this.requestSpec, this.responseSpec);
+        Assertions.assertNotNull(globalConfig);
 
         String configName = "penalty-wait-period";
-        for (Integer configIndex = 0; configIndex < (globalConfig.size() - 1); configIndex++) {
+        for (Integer configIndex = 0; configIndex < globalConfig.size() - 1; configIndex++) {
             if (globalConfig.get(configIndex).get("name").equals(configName)) {
                 Integer configId = (Integer) globalConfig.get(configIndex).get("id");
-                Assert.assertNotNull(configId);
+                Assertions.assertNotNull(configId);
 
-                HashMap configDataBefore = this.globalConfigurationHelper.getGlobalConfigurationById(this.requestSpec, this.responseSpec,
+                HashMap configDataBefore = GlobalConfigurationHelper.getGlobalConfigurationById(this.requestSpec, this.responseSpec,
                         configId.toString());
-                Assert.assertNotNull(configDataBefore);
+                Assertions.assertNotNull(configDataBefore);
 
                 Integer value = (Integer) configDataBefore.get("value") + 1;
 
                 // Updating Value for penalty-wait-period Global Configuration
-                configId = this.globalConfigurationHelper.updateValueForGlobalConfiguration(this.requestSpec, this.responseSpec,
+                configId = GlobalConfigurationHelper.updateValueForGlobalConfiguration(this.requestSpec, this.responseSpec,
                         configId.toString(), value.toString());
-                Assert.assertNotNull(configId);
+                Assertions.assertNotNull(configId);
 
-                HashMap configDataAfter = this.globalConfigurationHelper.getGlobalConfigurationById(this.requestSpec, this.responseSpec,
+                HashMap configDataAfter = GlobalConfigurationHelper.getGlobalConfigurationById(this.requestSpec, this.responseSpec,
                         configId.toString());
 
                 // Verifying Value for penalty-wait-period after Updation
-                Assert.assertEquals("Verifying Global Config Value after Updation", value, configDataAfter.get("value"));
+                Assertions.assertEquals(value, configDataAfter.get("value"), "Verifying Global Config Value after Updation");
 
                 // Updating Enabled Flag for penalty-wait-period Global
                 // Configuration
@@ -93,14 +98,14 @@ public class GlobalConfigurationTest {
                     enabled = true;
                 }
 
-                configId = this.globalConfigurationHelper.updateEnabledFlagForGlobalConfiguration(this.requestSpec, this.responseSpec,
+                configId = GlobalConfigurationHelper.updateEnabledFlagForGlobalConfiguration(this.requestSpec, this.responseSpec,
                         configId.toString(), enabled);
 
-                configDataAfter = this.globalConfigurationHelper.getGlobalConfigurationById(this.requestSpec, this.responseSpec,
+                configDataAfter = GlobalConfigurationHelper.getGlobalConfigurationById(this.requestSpec, this.responseSpec,
                         configId.toString());
 
                 // Verifying Enabled Flag for penalty-wait-period after Updation
-                Assert.assertEquals("Verifying Enabled Flag Global Config after Updation", enabled, configDataAfter.get("enabled"));
+                Assertions.assertEquals(enabled, configDataAfter.get("enabled"), "Verifying Enabled Flag Global Config after Updation");
                 break;
             }
         }
@@ -111,15 +116,15 @@ public class GlobalConfigurationTest {
         this.globalConfigurationHelper = new GlobalConfigurationHelper(this.requestSpec, this.responseSpec);
 
         // Retrieving Is Cache Enabled Global Configuration details
-        ArrayList<HashMap> isCacheGlobalConfig = this.globalConfigurationHelper.getGlobalConfigurationIsCacheEnabled(this.requestSpec,
+        ArrayList<HashMap> isCacheGlobalConfig = GlobalConfigurationHelper.getGlobalConfigurationIsCacheEnabled(this.requestSpec,
                 this.responseSpec);
-        Assert.assertNotNull(isCacheGlobalConfig);
+        Assertions.assertNotNull(isCacheGlobalConfig);
 
-        for (Integer cacheType = 0; cacheType <= ((isCacheGlobalConfig.size()) - 1); cacheType++) {
+        for (Integer cacheType = 0; cacheType <= isCacheGlobalConfig.size() - 1; cacheType++) {
 
             // Retrieving Is Cache Enabled Global Configuration details
-            isCacheGlobalConfig = this.globalConfigurationHelper.getGlobalConfigurationIsCacheEnabled(this.requestSpec, this.responseSpec);
-            Assert.assertNotNull(isCacheGlobalConfig);
+            isCacheGlobalConfig = GlobalConfigurationHelper.getGlobalConfigurationIsCacheEnabled(this.requestSpec, this.responseSpec);
+            Assertions.assertNotNull(isCacheGlobalConfig);
 
             HashMap cacheTypeAsHashMap = (HashMap) isCacheGlobalConfig.get(cacheType).get("cacheType");
             Integer cacheTypeId = (Integer) cacheTypeAsHashMap.get("id");
@@ -132,90 +137,74 @@ public class GlobalConfigurationTest {
                 cacheTypeId -= 1;
             }
 
-            HashMap changes = this.globalConfigurationHelper.updateIsCacheEnabledForGlobalConfiguration(this.requestSpec,
-                    this.responseSpec, cacheTypeId.toString());
-            Assert.assertEquals("Verifying Is Cache Enabled Global Config after Updation", cacheTypeId, changes.get("cacheType"));
+            HashMap changes = GlobalConfigurationHelper.updateIsCacheEnabledForGlobalConfiguration(this.requestSpec, this.responseSpec,
+                    cacheTypeId.toString());
+            Assertions.assertEquals(cacheTypeId, changes.get("cacheType"), "Verifying Is Cache Enabled Global Config after Updation");
         }
     }
-    
+
     @Test
-	public void testGlobalConfigForcePasswordResetDays() {
+    public void testGlobalConfigForcePasswordResetDays() {
 
-		// Retrieving All Global Configuration details
-		final ArrayList<HashMap> globalConfig = this.globalConfigurationHelper
-				.getAllGlobalConfigurations(this.requestSpec, this.responseSpec);
-		Assert.assertNotNull(globalConfig);
+        // Retrieving All Global Configuration details
+        final ArrayList<HashMap> globalConfig = GlobalConfigurationHelper.getAllGlobalConfigurations(this.requestSpec, this.responseSpec);
+        Assertions.assertNotNull(globalConfig);
 
-		String configName = "force-password-reset-days";
-		String newValue = "0";
-		String newBooleanValue = "true";
+        String configName = "force-password-reset-days";
+        String newValue = "0";
+        String newBooleanValue = "true";
 
-		for (Integer configIndex = 0; configIndex < (globalConfig.size() - 1); configIndex++) {
-			if (globalConfig.get(configIndex).get("name").equals(configName)) {
-				Integer configId = (Integer) globalConfig.get(configIndex).get(
-						"id");
-				Assert.assertNotNull(configId);
+        for (Integer configIndex = 0; configIndex < globalConfig.size() - 1; configIndex++) {
+            if (globalConfig.get(configIndex).get("name").equals(configName)) {
+                Integer configId = (Integer) globalConfig.get(configIndex).get("id");
+                Assertions.assertNotNull(configId);
 
-				/*
-				 * Update force-password-reset-days with value as 0 and Enable
-				 * as true - failure case
-				 */
-				ArrayList error = (ArrayList) this.globalConfigurationHelper
-						.updatePasswordResetDaysForGlobalConfiguration(
-								this.requestSpec, this.httpStatusForidden,
-								configId, newValue, newBooleanValue,
-								CommonConstants.RESPONSE_ERROR);
-				HashMap hash = (HashMap) error.get(0);
+                /*
+                 * Update force-password-reset-days with value as 0 and Enable as true - failure case
+                 */
+                ArrayList error = (ArrayList) GlobalConfigurationHelper.updatePasswordResetDaysForGlobalConfiguration(this.requestSpec,
+                        this.httpStatusForidden, configId, newValue, newBooleanValue, CommonConstants.RESPONSE_ERROR);
+                HashMap hash = (HashMap) error.get(0);
 
-				Assert.assertEquals(
-						"Force Password Reset days value must be greater than zero.",
-						"error.msg.password.reset.days.value.must.be.greater.than.zero",
-						hash.get(CommonConstants.RESPONSE_ERROR_MESSAGE_CODE));
+                Assertions.assertEquals("error.msg.password.reset.days.value.must.be.greater.than.zero",
+                        hash.get(CommonConstants.RESPONSE_ERROR_MESSAGE_CODE),
+                        "Force Password Reset days value must be greater than zero.");
 
-				/*
-				 * Update force-password-reset-days with value as 50 and Enable
-				 * as true - success case
-				 */
-				final HashMap updateSuccess = (HashMap) this.globalConfigurationHelper
-						.updatePasswordResetDaysForGlobalConfiguration(
-								this.requestSpec, this.responseSpec, configId,
-								"50", newBooleanValue, "changes");
-				Assert.assertNotNull(updateSuccess);
+                /*
+                 * Update force-password-reset-days with value as 50 and Enable as true - success case
+                 */
+                final HashMap updateSuccess = (HashMap) GlobalConfigurationHelper.updatePasswordResetDaysForGlobalConfiguration(
+                        this.requestSpec, this.responseSpec, configId, "50", newBooleanValue, "changes");
+                Assertions.assertNotNull(updateSuccess);
 
-				/* Update with value as 0 and Enable as false - success case */
-				final HashMap updateSuccess1 = (HashMap) this.globalConfigurationHelper
-						.updatePasswordResetDaysForGlobalConfiguration(
-								this.requestSpec, this.responseSpec, configId,
-								newValue, "false", "changes");
-				Assert.assertNotNull(updateSuccess1);
+                /* Update with value as 0 and Enable as false - success case */
+                final HashMap updateSuccess1 = (HashMap) GlobalConfigurationHelper.updatePasswordResetDaysForGlobalConfiguration(
+                        this.requestSpec, this.responseSpec, configId, newValue, "false", "changes");
+                Assertions.assertNotNull(updateSuccess1);
 
-				/* Update without sending value and Enable as true - failure case*/
-				ArrayList failure = (ArrayList) this.globalConfigurationHelper
-						.updatePasswordResetDaysForGlobalConfiguration(
-								this.requestSpec, this.httpStatusForidden, configId,
-								null, newBooleanValue, CommonConstants.RESPONSE_ERROR);
-				HashMap failureHash = (HashMap) failure.get(0);
-				Assert.assertEquals(
-						"Force Password Reset days value must be greater than zero.",
-						"error.msg.password.reset.days.value.must.be.greater.than.zero",
-						failureHash.get(CommonConstants.RESPONSE_ERROR_MESSAGE_CODE));
+                /*
+                 * Update without sending value and Enable as true - failure case
+                 */
+                ArrayList failure = (ArrayList) GlobalConfigurationHelper.updatePasswordResetDaysForGlobalConfiguration(this.requestSpec,
+                        this.httpStatusForidden, configId, null, newBooleanValue, CommonConstants.RESPONSE_ERROR);
+                HashMap failureHash = (HashMap) failure.get(0);
+                Assertions.assertEquals("error.msg.password.reset.days.value.must.be.greater.than.zero",
+                        failureHash.get(CommonConstants.RESPONSE_ERROR_MESSAGE_CODE),
+                        "Force Password Reset days value must be greater than zero.");
 
-				break;
-			}
-		}
-		/* Update other global configuration property */
-		String otherConfigName = "maker-checker";
-		for (Integer configIndex = 0; configIndex < (globalConfig.size() - 1); configIndex++) {
-			if (globalConfig.get(configIndex).get("name")
-					.equals(otherConfigName)) {
-				String configId = (globalConfig.get(configIndex).get("id"))
-						.toString();
-				Integer updateConfigId = this.globalConfigurationHelper
-						.updateValueForGlobalConfiguration(this.requestSpec,
-								this.responseSpec, configId, newValue);
-				Assert.assertNotNull(updateConfigId);
-				break;
-			}
-		}
-	}
+                break;
+            }
+        }
+        /* Update other global configuration property */
+        String otherConfigName = "maker-checker";
+        for (Integer configIndex = 0; configIndex < globalConfig.size() - 1; configIndex++) {
+            if (globalConfig.get(configIndex).get("name").equals(otherConfigName)) {
+                String configId = globalConfig.get(configIndex).get("id").toString();
+                Integer updateConfigId = GlobalConfigurationHelper.updateValueForGlobalConfiguration(this.requestSpec, this.responseSpec,
+                        configId, newValue);
+                Assertions.assertNotNull(updateConfigId);
+                break;
+            }
+        }
+    }
 }

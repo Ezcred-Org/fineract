@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,38 +18,36 @@
  */
 package org.apache.fineract.portfolio.loanaccount.api;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 /**
  * Created by Chirag Gupta on 12/30/17.
  */
 final class LoanScheduleApiResourceSwagger {
-    private LoanScheduleApiResourceSwagger() {
+
+    private LoanScheduleApiResourceSwagger() {}
+
+    @Schema(description = "PostLoansLoanIdScheduleRequest")
+    public static final class PostLoansLoanIdScheduleRequest {
+
+        private PostLoansLoanIdScheduleRequest() {}
     }
 
-    @ApiModel(value = "PostLoansLoanIdScheduleRequest")
-    public final static class PostLoansLoanIdScheduleRequest {
-        private PostLoansLoanIdScheduleRequest() {
-        }
-    }
+    @Schema(description = "PostLoansLoanIdScheduleResponse")
+    public static final class PostLoansLoanIdScheduleResponse {
 
-    @ApiModel(value = "PostLoansLoanIdScheduleResponse")
-    public final static class PostLoansLoanIdScheduleResponse {
-        private PostLoansLoanIdScheduleResponse() {
-        }
+        private PostLoansLoanIdScheduleResponse() {}
 
-        final class PostLoanChanges {
-            private PostLoanChanges() {
-            }
+        static final class PostLoanChanges {
 
-            @ApiModelProperty(example = "[21, 22]")
+            private PostLoanChanges() {}
+
+            @Schema(example = "[21, 22]")
             public List<Integer> removedEntityIds;
         }
 
-        @ApiModelProperty(example = "1")
+        @Schema(example = "1")
         public Integer loanId;
         public PostLoanChanges changes;
     }

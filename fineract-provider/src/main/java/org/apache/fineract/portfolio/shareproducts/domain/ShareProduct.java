@@ -19,9 +19,10 @@
 package org.apache.fineract.portfolio.shareproducts.domain;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -37,7 +38,6 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import org.apache.fineract.accounting.common.AccountingRuleType;
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
@@ -48,9 +48,10 @@ import org.apache.fineract.portfolio.shareproducts.data.ShareProductMarketPriceD
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.joda.time.DateTime;
 
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "m_share_product")
-public class ShareProduct extends AbstractAuditableCustom<AppUser, Long> {
+public class ShareProduct extends AbstractAuditableCustom {
 
     @Column(name = "name", nullable = false, unique = true)
     private String name;
@@ -83,7 +84,7 @@ public class ShareProduct extends AbstractAuditableCustom<AppUser, Long> {
 
     @Column(name = "totalsubscribed_shares", nullable = true)
     private Long totalSubscribedShares;
-    
+
     @Column(name = "unit_price", nullable = false)
     private BigDecimal unitPrice;
 
@@ -100,7 +101,7 @@ public class ShareProduct extends AbstractAuditableCustom<AppUser, Long> {
     private Long maximumShares;
 
     @OrderBy(value = "fromDate,id")
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "product", orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "product", orphanRemoval = true, fetch = FetchType.EAGER)
     Set<ShareProductMarketPrice> marketPrice;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -159,9 +160,9 @@ public class ShareProduct extends AbstractAuditableCustom<AppUser, Long> {
         this.minimumActivePeriod = minimumActivePeriod;
         this.minimumActivePeriodType = minimumActivePeriodForDividendsType;
         setCreatedBy(createdBy);
-        setCreatedDate(createdDate);
+        setCreatedDate(Instant.ofEpochMilli(createdDate.getMillis()));
         setLastModifiedBy(lastModifiedBy);
-        setLastModifiedDate(lastModifiedDate);
+        setLastModifiedDate(Instant.ofEpochMilli(lastModifiedDate.getMillis()));
         startDate = DateUtils.getDateOfTenant();
         endDate = DateUtils.getDateOfTenant();
         if (accountingRuleType != null) {
@@ -247,7 +248,7 @@ public class ShareProduct extends AbstractAuditableCustom<AppUser, Long> {
 
     public boolean setUnitPrice(BigDecimal unitPrice) {
         boolean returnValue = false;
-        if (!this.unitPrice.equals(unitPrice)) {
+        if (this.unitPrice.compareTo(unitPrice) == 0 ? Boolean.FALSE : Boolean.TRUE) {
             this.unitPrice = unitPrice;
             returnValue = true;
         }
@@ -282,23 +283,26 @@ public class ShareProduct extends AbstractAuditableCustom<AppUser, Long> {
     }
 
     public boolean setMarketPrice(Set<ShareProductMarketPriceData> marketPrice) {
-        boolean update = false;
-        for (ShareProductMarketPriceData data : marketPrice) {
-            if (data.getId() == null) {
-                ShareProductMarketPrice entity = new ShareProductMarketPrice(data.getStartDate(), data.getShareValue());
-                entity.setShareProduct(this);
-                this.marketPrice.add(entity);
-                update = true;
-            } else {
-                for (ShareProductMarketPrice priceData : this.marketPrice) {
-                    if (priceData.getId() == data.getId()) {
-                        priceData.setStartDate(data.getStartDate());
-                        priceData.setShareValue(data.getShareValue());
-                        update = true;
+        boolean update = true;
+        Set<ShareProductMarketPrice> marketPriceTemp = new HashSet<ShareProductMarketPrice>();
+        if (marketPrice != null && marketPrice.size() > 0) {
+            for (ShareProductMarketPriceData data : marketPrice) {
+                if (data.getId() == null) {
+                    ShareProductMarketPrice entity = new ShareProductMarketPrice(data.getStartDate(), data.getShareValue());
+                    entity.setShareProduct(this);
+                    marketPriceTemp.add(entity);
+                } else {
+                    for (ShareProductMarketPrice priceData : this.marketPrice) {
+                        if (priceData.getId().equals(data.getId())) {
+                            priceData.setStartDate(data.getStartDate());
+                            priceData.setShareValue(data.getShareValue());
+                            marketPriceTemp.add(priceData);
+                        }
                     }
                 }
             }
         }
+        this.marketPrice = marketPriceTemp;
         return update;
     }
 
@@ -310,7 +314,8 @@ public class ShareProduct extends AbstractAuditableCustom<AppUser, Long> {
 
     public boolean setAllowDividendCalculationForInactiveClients(Boolean allowDividendCalculationForInactiveClients) {
         boolean returnValue = false;
-        if (this.allowDividendCalculationForInactiveClients == null || !this.allowDividendCalculationForInactiveClients.equals(allowDividendCalculationForInactiveClients)) {
+        if (this.allowDividendCalculationForInactiveClients == null
+                || !this.allowDividendCalculationForInactiveClients.equals(allowDividendCalculationForInactiveClients)) {
             this.allowDividendCalculationForInactiveClients = allowDividendCalculationForInactiveClients;
             returnValue = true;
         }
@@ -359,7 +364,7 @@ public class ShareProduct extends AbstractAuditableCustom<AppUser, Long> {
 
     public boolean setshareCapitalValue(BigDecimal shareCapitalValue) {
         boolean updated = false;
-        if (this.shareCapital == null || !this.shareCapital.equals(shareCapitalValue)) {
+        if (this.shareCapital == null || this.shareCapital.compareTo(shareCapitalValue) == 0 ? Boolean.FALSE : Boolean.TRUE) {
             this.shareCapital = shareCapitalValue;
             updated = true;
         }
@@ -402,38 +407,38 @@ public class ShareProduct extends AbstractAuditableCustom<AppUser, Long> {
         if (this.marketPrice != null && !this.marketPrice.isEmpty()) {
             for (ShareProductMarketPrice data : this.marketPrice) {
                 Date futureDate = data.getStartDate();
-                if (currentDate.equals(futureDate) || currentDate.after(futureDate)) {
+                if (currentDate.compareTo(futureDate) == 0 ? Boolean.TRUE : Boolean.FALSE || currentDate.after(futureDate)) {
                     marketValue = data.getPrice();
                 }
             }
         }
         return marketValue;
     }
-    
+
     public void addSubscribedShares(final Long subscribedShares) {
-        if(this.totalSubscribedShares == null) {
-            this.totalSubscribedShares = new Long(0) ;
+        if (this.totalSubscribedShares == null) {
+            this.totalSubscribedShares = Long.valueOf(0);
         }
-        this.totalSubscribedShares += subscribedShares ;
+        this.totalSubscribedShares += subscribedShares;
     }
-    
+
     public void removeSubscribedShares(final Long subscribedShares) {
-        this.totalSubscribedShares -= subscribedShares ;
+        this.totalSubscribedShares -= subscribedShares;
     }
-    
+
     public Long getSubscribedShares() {
-        return this.totalSubscribedShares ;
+        return this.totalSubscribedShares;
     }
- 
+
     public Long getMinimumClientShares() {
-        return this.minimumShares ;
+        return this.minimumShares;
     }
-    
+
     public Long getMaximumClientShares() {
-        return this.maximumShares ;
+        return this.maximumShares;
     }
-    
+
     public Long getDefaultClientShares() {
-        return this.nominalShares ;
+        return this.nominalShares;
     }
 }

@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -46,19 +45,19 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.portfolio.common.domain.PeriodFrequencyType;
 import org.joda.time.LocalDate;
 import org.joda.time.MonthDay;
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
-@Table(name = "m_account_transfer_standing_instructions", uniqueConstraints = { @UniqueConstraint(columnNames = { "name" }, name = "name") })
-public class AccountTransferStandingInstruction extends AbstractPersistableCustom<Long> {
+@Table(name = "m_account_transfer_standing_instructions", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "name" }, name = "name") })
+public class AccountTransferStandingInstruction extends AbstractPersistableCustom {
 
     @ManyToOne
     @JoinColumn(name = "account_transfer_details_id", nullable = true)
@@ -111,9 +110,9 @@ public class AccountTransferStandingInstruction extends AbstractPersistableCusto
     }
 
     public static AccountTransferStandingInstruction create(final AccountTransferDetails accountTransferDetails, final String name,
-            final Integer priority, final Integer instructionType, final Integer status, final BigDecimal amount,
-            final LocalDate validFrom, final LocalDate validTill, final Integer recurrenceType, final Integer recurrenceFrequency,
-            final Integer recurrenceInterval, final MonthDay recurrenceOnMonthDay) {
+            final Integer priority, final Integer instructionType, final Integer status, final BigDecimal amount, final LocalDate validFrom,
+            final LocalDate validTill, final Integer recurrenceType, final Integer recurrenceFrequency, final Integer recurrenceInterval,
+            final MonthDay recurrenceOnMonthDay) {
         Integer recurrenceOnDay = null;
         Integer recurrenceOnMonth = null;
         if (recurrenceOnMonthDay != null) {
@@ -125,9 +124,9 @@ public class AccountTransferStandingInstruction extends AbstractPersistableCusto
     }
 
     private AccountTransferStandingInstruction(final AccountTransferDetails accountTransferDetails, final String name,
-            final Integer priority, final Integer instructionType, final Integer status, final BigDecimal amount,
-            final LocalDate validFrom, final LocalDate validTill, final Integer recurrenceType, final Integer recurrenceFrequency,
-            final Integer recurrenceInterval, final Integer recurrenceOnDay, final Integer recurrenceOnMonth) {
+            final Integer priority, final Integer instructionType, final Integer status, final BigDecimal amount, final LocalDate validFrom,
+            final LocalDate validTill, final Integer recurrenceType, final Integer recurrenceFrequency, final Integer recurrenceInterval,
+            final Integer recurrenceOnDay, final Integer recurrenceOnMonth) {
         this.accountTransferDetails = accountTransferDetails;
         this.name = name;
         this.priority = priority;
@@ -152,7 +151,9 @@ public class AccountTransferStandingInstruction extends AbstractPersistableCusto
                 .resource(STANDING_INSTRUCTION_RESOURCE_NAME);
 
         validateDependencies(baseDataValidator);
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
     }
 
     public Map<String, Object> update(JsonCommand command) {
@@ -218,13 +219,13 @@ public class AccountTransferStandingInstruction extends AbstractPersistableCusto
             final MonthDay monthDay = command.extractMonthDayNamed(recurrenceOnMonthDayParamName);
             final String actualValueEntered = command.stringValueOfParameterNamed(recurrenceOnMonthDayParamName);
             final Integer dayOfMonthValue = monthDay.getDayOfMonth();
-            if (this.recurrenceOnDay != dayOfMonthValue) {
+            if (!this.recurrenceOnDay.equals(dayOfMonthValue)) {
                 actualChanges.put(recurrenceOnMonthDayParamName, actualValueEntered);
                 this.recurrenceOnDay = dayOfMonthValue;
             }
 
             final Integer monthOfYear = monthDay.getMonthOfYear();
-            if (this.recurrenceOnMonth != monthOfYear) {
+            if (!this.recurrenceOnMonth.equals(monthOfYear)) {
                 actualChanges.put(recurrenceOnMonthDayParamName, actualValueEntered);
                 this.recurrenceOnMonth = monthOfYear;
             }
@@ -236,7 +237,9 @@ public class AccountTransferStandingInstruction extends AbstractPersistableCusto
             this.recurrenceInterval = newValue;
         }
         validateDependencies(baseDataValidator);
-        if (!dataValidationErrors.isEmpty()) { throw new PlatformApiDataValidationException(dataValidationErrors); }
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
         return actualChanges;
     }
 
@@ -287,16 +290,16 @@ public class AccountTransferStandingInstruction extends AbstractPersistableCusto
     public void updateLatsRunDate(Date latsRunDate) {
         this.latsRunDate = latsRunDate;
     }
-    
-    public void updateStatus(Integer status){
+
+    public void updateStatus(Integer status) {
         this.status = status;
     }
-    
-    /** 
+
+    /**
      * delete the standing instruction by setting the status to 3 and appending "_deleted_" and the id to the name
      **/
-     public void delete() {
-         this.status = StandingInstructionStatus.DELETED.getValue();
-         this.name = this.name + "_deleted_" + this.getId();
-     }
+    public void delete() {
+        this.status = StandingInstructionStatus.DELETED.getValue();
+        this.name = this.name + "_deleted_" + this.getId();
+    }
 }

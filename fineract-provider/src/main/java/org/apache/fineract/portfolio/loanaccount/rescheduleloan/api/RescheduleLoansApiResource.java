@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.loanaccount.rescheduleloan.api;
 
 import java.util.HashSet;
 import java.util.List;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -31,8 +30,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
@@ -97,7 +95,7 @@ public class RescheduleLoansApiResource {
 
         return this.loanRescheduleRequestToApiJsonSerializer.serialize(settings, loanRescheduleReasons);
     }
-    
+
     @GET
     @Path("{scheduleId}")
     @Consumes({ MediaType.APPLICATION_JSON })
@@ -116,7 +114,7 @@ public class RescheduleLoansApiResource {
 
         final LoanRescheduleRequestData loanRescheduleRequestData = this.loanRescheduleRequestReadPlatformService
                 .readLoanRescheduleRequest(scheduleId);
-        
+
         return this.loanRescheduleRequestToApiJsonSerializer.serialize(settings, loanRescheduleRequestData);
     }
 
@@ -161,7 +159,7 @@ public class RescheduleLoansApiResource {
 
     /**
      * Compares two strings, ignoring differences in case
-     * 
+     *
      * @param firstString
      *            the first string
      * @param secondString
@@ -180,29 +178,34 @@ public class RescheduleLoansApiResource {
         this.platformSecurityContext.authenticatedUser().validateHasReadPermission(RescheduleLoansApiConstants.ENTITY_NAME);
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
-        if (StringUtils.isNotBlank(command) && !RescheduleLoansApiConstants.commandParams.contains(command.toLowerCase())) { throw new UnrecognizedQueryParamException(
-                "command", command, new Object[] { RescheduleLoansApiConstants.allCommandParamName,
-                        RescheduleLoansApiConstants.pendingCommandParamName, RescheduleLoansApiConstants.approveCommandParamName,
-                        RescheduleLoansApiConstants.rejectCommandParamName }); }
+        if (StringUtils.isNotBlank(command) && !RescheduleLoansApiConstants.commandParams.contains(command.toLowerCase())) {
+            throw new UnrecognizedQueryParamException("command", command,
+                    new Object[] { RescheduleLoansApiConstants.allCommandParamName, RescheduleLoansApiConstants.pendingCommandParamName,
+                            RescheduleLoansApiConstants.approveCommandParamName, RescheduleLoansApiConstants.rejectCommandParamName });
+        }
         final List<LoanRescheduleRequestData> loanRescheduleRequestsData = this.loanRescheduleRequestReadPlatformService
                 .retrieveAllRescheduleRequests(command);
 
         return this.loanRescheduleRequestToApiJsonSerializer.serialize(settings, loanRescheduleRequestsData);
     }
-    
-    /*@GET
-    @Path("{scheduleId}")
-    @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
-    public String retrieveTemplate(@Context final UriInfo uriInfo) {
 
-        this.platformSecurityContext.authenticatedUser().validateHasReadPermission(RescheduleLoansApiConstants.ENTITY_NAME);
-        final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
-
-        LoanRescheduleRequestData loanRescheduleReasons = null;
-        loanRescheduleReasons = this.loanRescheduleRequestReadPlatformService
-                .retrieveAllRescheduleReasons(RescheduleLoansApiConstants.LOAN_RESCHEDULE_REASON);
-
-        return this.loanRescheduleRequestToApiJsonSerializer.serialize(settings, loanRescheduleReasons);
-    }*/
+    /*
+     * @GET
+     *
+     * @Path("{scheduleId}")
+     *
+     * @Consumes({ MediaType.APPLICATION_JSON })
+     *
+     * @Produces({ MediaType.APPLICATION_JSON }) public String retrieveTemplate(@Context final UriInfo uriInfo) {
+     *
+     * this.platformSecurityContext.authenticatedUser().
+     * validateHasReadPermission(RescheduleLoansApiConstants.ENTITY_NAME); final ApiRequestJsonSerializationSettings
+     * settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
+     *
+     * LoanRescheduleRequestData loanRescheduleReasons = null; loanRescheduleReasons =
+     * this.loanRescheduleRequestReadPlatformService .retrieveAllRescheduleReasons(RescheduleLoansApiConstants.
+     * LOAN_RESCHEDULE_REASON);
+     *
+     * return this.loanRescheduleRequestToApiJsonSerializer.serialize(settings, loanRescheduleReasons); }
+     */
 }

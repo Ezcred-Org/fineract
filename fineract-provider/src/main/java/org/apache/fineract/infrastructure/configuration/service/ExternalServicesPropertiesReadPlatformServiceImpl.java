@@ -21,7 +21,6 @@ package org.apache.fineract.infrastructure.configuration.service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.campaigns.sms.data.MessageGatewayConfigurationData;
 import org.apache.fineract.infrastructure.configuration.data.ExternalServicesPropertiesData;
 import org.apache.fineract.infrastructure.configuration.data.S3CredentialsData;
@@ -75,21 +74,30 @@ public class ExternalServicesPropertiesReadPlatformServiceImpl implements Extern
             String host = null;
             String port = "25";
             boolean useTLS = false;
+            String fromEmail = null;
+            String fromName = null;
 
             while (rs.next()) {
-                if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.SMTP_USERNAME)) {
-                    username = rs.getString("value");
-                } else if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.SMTP_PASSWORD)) {
-                    password = rs.getString("value");
-                } else if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.SMTP_HOST)) {
-                    host = rs.getString("value");
-                } else if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.SMTP_PORT)) {
-                    port = rs.getString("value");
-                } else if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.SMTP_USE_TLS)) {
-                    useTLS = Boolean.parseBoolean(rs.getString("value"));
+                String name = rs.getString("name");
+                String value = rs.getString("value");
+
+                if (ExternalServicesConstants.SMTP_USERNAME.equalsIgnoreCase(name)) {
+                    username = value;
+                } else if (ExternalServicesConstants.SMTP_PASSWORD.equalsIgnoreCase(name)) {
+                    password = value;
+                } else if (ExternalServicesConstants.SMTP_HOST.equalsIgnoreCase(name)) {
+                    host = value;
+                } else if (ExternalServicesConstants.SMTP_PORT.equalsIgnoreCase(name)) {
+                    port = value;
+                } else if (ExternalServicesConstants.SMTP_USE_TLS.equalsIgnoreCase(name)) {
+                    useTLS = Boolean.parseBoolean(value);
+                } else if (ExternalServicesConstants.SMTP_FROM_EMAIL.equalsIgnoreCase(name)) {
+                    fromEmail = value;
+                } else if (ExternalServicesConstants.SMTP_FROM_NAME.equalsIgnoreCase(name)) {
+                    fromName = value;
                 }
             }
-            return new SMTPCredentialsData(username, password, host, port, useTLS);
+            return new SMTPCredentialsData(username, password, host, port, useTLS, fromEmail, fromName);
         }
     }
 
@@ -157,7 +165,8 @@ public class ExternalServicesPropertiesReadPlatformServiceImpl implements Extern
         final ResultSetExtractor<MessageGatewayConfigurationData> resultSetExtractor = new MessageGatewayDataExtractor();
         final String sql = "SELECT esp.name, esp.value FROM c_external_service_properties esp inner join c_external_service es on esp.external_service_id = es.id where es.name = '"
                 + ExternalServicesConstants.SMS_SERVICE_NAME + "'";
-        final MessageGatewayConfigurationData messageGatewayConfigurationData = this.jdbcTemplate.query(sql, resultSetExtractor, new Object[] {});
+        final MessageGatewayConfigurationData messageGatewayConfigurationData = this.jdbcTemplate.query(sql, resultSetExtractor,
+                new Object[] {});
         return messageGatewayConfigurationData;
     }
 
@@ -190,7 +199,7 @@ public class ExternalServicesPropertiesReadPlatformServiceImpl implements Extern
         return this.jdbcTemplate.query(sql, mapper, new Object[] {});
 
     }
-    
+
     private static final class NotificationDataExtractor implements ResultSetExtractor<NotificationConfigurationData> {
 
         @Override
@@ -199,26 +208,26 @@ public class ExternalServicesPropertiesReadPlatformServiceImpl implements Extern
             String gcmEndPoint = null;
             String fcmEndPoint = null;
             while (rs.next()) {
-                if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.NOTIFICATION_SERVER_KEY )) {
-                	serverKey = rs.getString("value");
-                } else if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.NOTIFICATION_GCM_END_POINT )) {
-                	gcmEndPoint = rs.getString("value");
-                } else if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.NOTIFICATION_FCM_END_POINT )) {
-                	fcmEndPoint = rs.getString("value");
+                if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.NOTIFICATION_SERVER_KEY)) {
+                    serverKey = rs.getString("value");
+                } else if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.NOTIFICATION_GCM_END_POINT)) {
+                    gcmEndPoint = rs.getString("value");
+                } else if (rs.getString("name").equalsIgnoreCase(ExternalServicesConstants.NOTIFICATION_FCM_END_POINT)) {
+                    fcmEndPoint = rs.getString("value");
                 }
             }
             return new NotificationConfigurationData(null, serverKey, gcmEndPoint, fcmEndPoint);
         }
     }
 
-
-	@Override
-	public NotificationConfigurationData getNotificationConfiguration() {
-		final ResultSetExtractor<NotificationConfigurationData> resultSetExtractor = new NotificationDataExtractor();
+    @Override
+    public NotificationConfigurationData getNotificationConfiguration() {
+        final ResultSetExtractor<NotificationConfigurationData> resultSetExtractor = new NotificationDataExtractor();
         final String sql = "SELECT esp.name, esp.value FROM c_external_service_properties esp inner join c_external_service es on esp.external_service_id = es.id where es.name = '"
                 + ExternalServicesConstants.NOTIFICATION_SERVICE_NAME + "'";
-        final NotificationConfigurationData notificationConfigurationData = this.jdbcTemplate.query(sql, resultSetExtractor, new Object[] {});
+        final NotificationConfigurationData notificationConfigurationData = this.jdbcTemplate.query(sql, resultSetExtractor,
+                new Object[] {});
         return notificationConfigurationData;
-	}
+    }
 
 }

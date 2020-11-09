@@ -19,7 +19,6 @@
 package org.apache.fineract.infrastructure.security.domain;
 
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -28,7 +27,6 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
-
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.security.data.AccessTokenData;
@@ -37,9 +35,9 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 
 @Entity
-@Table(name = "twofactor_access_token",
-        uniqueConstraints = {@UniqueConstraint(columnNames = { "token", "appuser_id" }, name = "token_appuser_UNIQUE")})
-public class TFAccessToken extends AbstractPersistableCustom<Long> {
+@Table(name = "twofactor_access_token", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "token", "appuser_id" }, name = "token_appuser_UNIQUE") })
+public class TFAccessToken extends AbstractPersistableCustom {
 
     @Column(name = "token", nullable = false, length = 32)
     private String token;
@@ -59,8 +57,7 @@ public class TFAccessToken extends AbstractPersistableCustom<Long> {
     @Column(name = "enabled", nullable = false)
     private boolean enabled;
 
-    public TFAccessToken() {
-    }
+    public TFAccessToken() {}
 
     public static TFAccessToken create(String token, AppUser user, int tokenLiveTimeInSec) {
         DateTime validFrom = DateUtils.getLocalDateTimeOfTenant().toDateTime();
@@ -78,13 +75,11 @@ public class TFAccessToken extends AbstractPersistableCustom<Long> {
     }
 
     public boolean isValid() {
-        return this.enabled && isDateInTheFuture(getValidToDate())
-                && isDateInThePast(getValidFromDate());
+        return this.enabled && isDateInTheFuture(getValidToDate()) && isDateInThePast(getValidFromDate());
     }
 
     public AccessTokenData toTokenData() {
-        return new AccessTokenData(this.token, getValidFromDate().toDateTime(),
-                getValidToDate().toDateTime());
+        return new AccessTokenData(this.token, getValidFromDate().toDateTime(), getValidToDate().toDateTime());
     }
 
     public String getToken() {

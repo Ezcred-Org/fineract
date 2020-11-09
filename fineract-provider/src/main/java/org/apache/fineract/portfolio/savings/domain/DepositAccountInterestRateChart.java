@@ -21,7 +21,6 @@ package org.apache.fineract.portfolio.savings.domain;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -30,7 +29,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.portfolio.client.domain.Client;
 import org.apache.fineract.portfolio.interestratechart.domain.InterestRateChart;
@@ -43,7 +41,7 @@ import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_savings_account_interest_rate_chart")
-public class DepositAccountInterestRateChart extends AbstractPersistableCustom<Long> {
+public class DepositAccountInterestRateChart extends AbstractPersistableCustom {
 
     @Embedded
     private InterestRateChartFields chartFields;
@@ -52,7 +50,7 @@ public class DepositAccountInterestRateChart extends AbstractPersistableCustom<L
     @JoinColumn(name = "savings_account_id", nullable = false)
     private SavingsAccount account;
 
-    @OneToMany(mappedBy = "depositAccountInterestRateChart", cascade = CascadeType.ALL, orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(mappedBy = "depositAccountInterestRateChart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<DepositAccountInterestRateChartSlabs> chartSlabs = new HashSet<>();
 
     protected DepositAccountInterestRateChart() {
@@ -98,7 +96,9 @@ public class DepositAccountInterestRateChart extends AbstractPersistableCustom<L
         final Set<DepositAccountInterestRateChartSlabs> chartSlabs = setOfChartSlabs();
 
         for (DepositAccountInterestRateChartSlabs interestRateChartSlab : chartSlabs) {
-            if (interestRateChartSlab.getId().equals(chartSlabId)) { return interestRateChartSlab; }
+            if (interestRateChartSlab.getId().equals(chartSlabId)) {
+                return interestRateChartSlab;
+            }
         }
         return null;
     }

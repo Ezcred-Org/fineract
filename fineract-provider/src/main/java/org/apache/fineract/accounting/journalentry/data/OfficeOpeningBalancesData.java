@@ -19,11 +19,10 @@
 package org.apache.fineract.accounting.journalentry.data;
 
 import java.util.List;
-
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 import org.joda.time.LocalDate;
 
-public class OfficeOpeningBalancesData {
+public final class OfficeOpeningBalancesData {
 
     @SuppressWarnings("unused")
     private final Long officeId;

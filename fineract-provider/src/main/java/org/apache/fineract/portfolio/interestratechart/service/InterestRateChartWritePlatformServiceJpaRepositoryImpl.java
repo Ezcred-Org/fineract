@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.interestratechart.service;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
@@ -38,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class InterestRateChartWritePlatformServiceJpaRepositoryImpl implements InterestRateChartWritePlatformService {
 
     @SuppressWarnings("unused")
-    private final static Logger logger = LoggerFactory.getLogger(InterestRateChartWritePlatformServiceJpaRepositoryImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(InterestRateChartWritePlatformServiceJpaRepositoryImpl.class);
     @SuppressWarnings("unused")
     private final PlatformSecurityContext context;
     private final InterestRateChartDataValidator interestRateChartDataValidator;

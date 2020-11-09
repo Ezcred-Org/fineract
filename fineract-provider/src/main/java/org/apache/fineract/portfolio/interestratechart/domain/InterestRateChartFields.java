@@ -22,18 +22,16 @@ import static org.apache.fineract.portfolio.interestratechart.InterestRateChartA
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.descriptionParamName;
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.endDateParamName;
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.fromDateParamName;
+import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.isPrimaryGroupingByAmountParamName;
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.localeParamName;
 import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.nameParamName;
-import static org.apache.fineract.portfolio.interestratechart.InterestRateChartApiConstants.isPrimaryGroupingByAmountParamName;
 
 import java.util.Date;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
 import org.apache.fineract.infrastructure.core.domain.LocalDateInterval;
@@ -69,7 +67,8 @@ public class InterestRateChartFields {
         return new InterestRateChartFields(name, description, fromDate, toDate, isPrimaryGroupingByAmount);
     }
 
-    private InterestRateChartFields(String name, String description, LocalDate fromDate, LocalDate toDate, boolean isPrimaryGroupingByAmount) {
+    private InterestRateChartFields(String name, String description, LocalDate fromDate, LocalDate toDate,
+            boolean isPrimaryGroupingByAmount) {
         this.name = name;
         this.description = description;
         this.fromDate = fromDate.toDate();
@@ -129,7 +128,9 @@ public class InterestRateChartFields {
 
     public boolean isFromDateAfter(LocalDate compare) {
         final LocalDate fromDate = getFromDateAsLocalDate();
-        if (fromDate != null && compare != null) { return fromDate.isAfter(compare); }
+        if (fromDate != null && compare != null) {
+            return fromDate.isAfter(compare);
+        }
         return false;
     }
 
@@ -160,7 +161,9 @@ public class InterestRateChartFields {
         final LocalDateInterval thisInterval = LocalDateInterval.create(thisFromDate, thisEndDate);
         final LocalDateInterval thatInterval = LocalDateInterval.create(thatFromDate, thatEndDate);
 
-        if (thisInterval.containsPortionOf(thatInterval) || thatInterval.containsPortionOf(thisInterval)) { return true; }
+        if (thisInterval.containsPortionOf(thatInterval) || thatInterval.containsPortionOf(thisInterval)) {
+            return true;
+        }
         return false;// no overlapping
     }
 

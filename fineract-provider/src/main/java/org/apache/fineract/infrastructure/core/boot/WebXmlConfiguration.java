@@ -18,26 +18,21 @@
  */
 package org.apache.fineract.infrastructure.core.boot;
 
-import javax.servlet.Filter;
-import javax.servlet.Servlet;
-
+import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
 import org.apache.fineract.infrastructure.core.filters.ResponseCorsFilter;
 import org.apache.fineract.infrastructure.security.filter.TenantAwareBasicAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.FilterRegistrationBean;
-import org.springframework.boot.context.embedded.ServletRegistrationBean;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.web.filter.DelegatingFilterProxy;
-
-import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
 
 /**
  * This Configuration replaces what formerly was in web.xml.
  *
- * @see <a
- *      href="http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#howto-convert-an-existing-application-to-spring-boot">#howto-convert-an-existing-application-to-spring-boot</a>
+ * @see <a href=
+ *      "http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#howto-convert-an-existing-application-to-spring-boot">#howto-convert-an-existing-application-to-spring-boot</a>
  */
 @Configuration
 @Profile("basicauth")
@@ -47,15 +42,9 @@ public class WebXmlConfiguration {
     private TenantAwareBasicAuthenticationFilter basicAuthenticationProcessingFilter;
 
     @Bean
-    public Filter springSecurityFilterChain() {
-        return new DelegatingFilterProxy();
-    }
-
-    @Bean
     public ServletRegistrationBean jersey() {
-        Servlet jerseyServlet = new SpringServlet();
-        ServletRegistrationBean jerseyServletRegistration = new ServletRegistrationBean();
-        jerseyServletRegistration.setServlet(jerseyServlet);
+        ServletRegistrationBean<SpringServlet> jerseyServletRegistration = new ServletRegistrationBean<SpringServlet>();
+        jerseyServletRegistration.setServlet(new SpringServlet());
         jerseyServletRegistration.addUrlMappings("/api/v1/*");
         jerseyServletRegistration.setName("jersey-servlet");
         jerseyServletRegistration.setLoadOnStartup(1);
@@ -71,7 +60,7 @@ public class WebXmlConfiguration {
 
     @Bean
     public FilterRegistrationBean filterRegistrationBean() {
-        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
+        FilterRegistrationBean<TenantAwareBasicAuthenticationFilter> filterRegistrationBean = new FilterRegistrationBean<TenantAwareBasicAuthenticationFilter>();
         filterRegistrationBean.setFilter(basicAuthenticationProcessingFilter);
         filterRegistrationBean.setEnabled(false);
         return filterRegistrationBean;

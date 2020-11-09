@@ -19,7 +19,6 @@
 package org.apache.fineract.infrastructure.entityaccess.api;
 
 import java.util.Collection;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,8 +30,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
-import io.swagger.annotations.Api;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
@@ -53,7 +50,7 @@ import org.springframework.stereotype.Component;
 @Produces({ MediaType.APPLICATION_JSON })
 @Component
 @Scope("singleton")
-@Api(value = "DomainName/api/v1/entitytoentitymapping", description = "") // https://github.com/swagger-api/swagger-ui/issues/1655
+
 public class FineractEntityApiResource {
 
     private final PlatformSecurityContext context;
@@ -112,8 +109,8 @@ public class FineractEntityApiResource {
 
         this.context.authenticatedUser().validateHasReadPermission(FineractEntityApiResourceConstants.FINERACT_ENTITY_RESOURCE_NAME);
 
-        final Collection<FineractEntityToEntityMappingData> entityToEntityMappings = this.readPlatformService.retrieveEntityToEntityMappings(
-                mapId, fromId, toId);
+        final Collection<FineractEntityToEntityMappingData> entityToEntityMappings = this.readPlatformService
+                .retrieveEntityToEntityMappings(mapId, fromId, toId);
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         return this.toApiJsonSerializerOfficeToLoanProducts.serialize(settings, entityToEntityMappings,
                 FineractEntityApiResourceConstants.FETCH_ENTITY_TO_ENTITY_MAPPINGS);

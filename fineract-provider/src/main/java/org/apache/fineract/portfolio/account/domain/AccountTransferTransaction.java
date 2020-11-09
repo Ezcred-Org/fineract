@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.account.domain;
 
 import java.math.BigDecimal;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -29,17 +28,16 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTransaction;
 import org.apache.fineract.portfolio.savings.domain.SavingsAccountTransaction;
 import org.joda.time.LocalDate;
-import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_account_transfer_transaction")
-public class AccountTransferTransaction extends AbstractPersistableCustom<Long> {
+public class AccountTransferTransaction extends AbstractPersistableCustom {
 
     @ManyToOne
     @JoinColumn(name = "account_transfer_details_id", nullable = true)
@@ -92,7 +90,7 @@ public class AccountTransferTransaction extends AbstractPersistableCustom<Long> 
                 transactionAmount, description);
     }
 
-    public static AccountTransferTransaction LoanTosavingsTransfer(final AccountTransferDetails accountTransferDetails,
+    public static AccountTransferTransaction loanTosavingsTransfer(final AccountTransferDetails accountTransferDetails,
             final SavingsAccountTransaction deposit, final LoanTransaction loanRefundTransaction, final LocalDate transactionDate,
             final Money transactionAmount, final String description) {
         return new AccountTransferTransaction(accountTransferDetails, null, deposit, null, loanRefundTransaction, transactionDate,
@@ -146,9 +144,10 @@ public class AccountTransferTransaction extends AbstractPersistableCustom<Long> 
         return this.accountTransferDetails;
     }
 
-        public static AccountTransferTransaction LoanToLoanTransfer(AccountTransferDetails accountTransferDetails, LoanTransaction disburseTransaction,
-                LoanTransaction repaymentTransaction, LocalDate transactionDate, Money transactionMonetaryAmount, String description) {
-            return new AccountTransferTransaction(accountTransferDetails, null, null, repaymentTransaction, disburseTransaction, transactionDate,
-                    transactionMonetaryAmount, description);
-        }
+    public static AccountTransferTransaction loanToLoanTransfer(AccountTransferDetails accountTransferDetails,
+            LoanTransaction disburseTransaction, LoanTransaction repaymentTransaction, LocalDate transactionDate,
+            Money transactionMonetaryAmount, String description) {
+        return new AccountTransferTransaction(accountTransferDetails, null, null, repaymentTransaction, disburseTransaction,
+                transactionDate, transactionMonetaryAmount, description);
+    }
 }

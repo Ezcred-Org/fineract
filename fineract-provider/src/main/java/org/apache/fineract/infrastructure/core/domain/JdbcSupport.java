@@ -18,28 +18,42 @@
  */
 package org.apache.fineract.infrastructure.core.domain;
 
+import static org.apache.fineract.infrastructure.core.service.DateUtils.getDateTimeZoneOfTenant;
+
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
-
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.springframework.jdbc.support.JdbcUtils;
 
 /**
- * Support for retrieving possibly null values from jdbc recordset delegating to
- * springs {@link JdbcUtils} where possible.
+ * Support for retrieving possibly null values from jdbc recordset delegating to springs {@link JdbcUtils} where
+ * possible.
  */
-public class JdbcSupport {
+public final class JdbcSupport {
+
+    private JdbcSupport() {
+
+    }
 
     public static DateTime getDateTime(final ResultSet rs, final String columnName) throws SQLException {
         DateTime dateTime = null;
         final Timestamp dateValue = rs.getTimestamp(columnName);
         if (dateValue != null) {
             dateTime = new DateTime(dateValue.getTime());
+        }
+        return dateTime;
+    }
+
+    public static DateTime getLocalDateTime(final ResultSet rs, final String columnName) throws SQLException {
+        DateTime dateTime = null;
+        final Timestamp dateValue = rs.getTimestamp(columnName);
+        if (dateValue != null) {
+            dateTime = new DateTime(dateValue.getTime()).withZone(getDateTimeZoneOfTenant());
         }
         return dateTime;
     }
@@ -52,6 +66,7 @@ public class JdbcSupport {
         }
         return localDate;
     }
+
     public static LocalTime getLocalTime(final ResultSet rs, final String columnName) throws SQLException {
         LocalTime localTime = null;
         final Date timeValue = rs.getTime(columnName);
@@ -59,7 +74,8 @@ public class JdbcSupport {
             localTime = new LocalTime(timeValue);
         }
         return localTime;
-    } 
+    }
+
     public static Long getLong(final ResultSet rs, final String columnName) throws SQLException {
         return (Long) JdbcUtils.getResultSetValue(rs, rs.findColumn(columnName), Long.class);
     }
@@ -72,7 +88,7 @@ public class JdbcSupport {
         final Integer value = (Integer) JdbcUtils.getResultSetValue(rs, rs.findColumn(columnName), Integer.class);
         return defaultToNullIfZero(value);
     }
-    
+
     public static Long getLongDefaultToNullIfZero(final ResultSet rs, final String columnName) throws SQLException {
         final Long value = (Long) JdbcUtils.getResultSetValue(rs, rs.findColumn(columnName), Long.class);
         return defaultToNullIfZero(value);
@@ -85,7 +101,7 @@ public class JdbcSupport {
         }
         return result;
     }
-    
+
     private static Long defaultToNullIfZero(final Long value) {
         Long result = value;
         if (result != null && Long.valueOf(0).equals(value)) {

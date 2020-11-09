@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,7 +29,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.fineract.infrastructure.core.api.ApiRequestParameterHelper;
 import org.apache.fineract.infrastructure.core.serialization.ApiRequestJsonSerializationSettings;
 import org.apache.fineract.infrastructure.core.serialization.ToApiJsonSerializer;
@@ -46,8 +44,8 @@ import org.springframework.stereotype.Component;
 @Scope("singleton")
 public class GroupsLevelApiResource {
 
-    private static final Set<String> GROUPLEVEL_DATA_PARAMETERS = new HashSet<>(Arrays.asList("levelId", "levelName",
-            "parentLevelId", "parentLevelName", "childLevelId", "childLevelName", "superParent", "recursable", "canHaveClients"));
+    private static final Set<String> GROUPLEVEL_DATA_PARAMETERS = new HashSet<>(Arrays.asList("levelId", "levelName", "parentLevelId",
+            "parentLevelName", "childLevelId", "childLevelName", "superParent", "recursable", "canHaveClients"));
 
     private final PlatformSecurityContext context;
     private final GroupLevelReadPlatformService groupLevelReadPlatformService;

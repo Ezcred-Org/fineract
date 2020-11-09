@@ -18,106 +18,106 @@
  */
 package org.apache.fineract.infrastructure.hooks.processor;
 
+import com.squareup.okhttp.OkHttpClient;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.OkClient;
 import retrofit.client.Response;
 
-import com.squareup.okhttp.OkHttpClient;
-
 @SuppressWarnings("unused")
-public class ProcessorHelper {
+public final class ProcessorHelper {
 
-	private final static Logger logger = LoggerFactory
-			.getLogger(ProcessorHelper.class);
+    private ProcessorHelper() {
 
-	@SuppressWarnings("null")
-	public static OkHttpClient configureClient(final OkHttpClient client) {
-		final TrustManager[] certs = new TrustManager[] { new X509TrustManager() {
+    }
 
-			@Override
-			public X509Certificate[] getAcceptedIssuers() {
-				return null;
-			}
+    private static final Logger LOG = LoggerFactory.getLogger(ProcessorHelper.class);
 
-			@Override
-			public void checkServerTrusted(final X509Certificate[] chain,
-					final String authType) throws CertificateException {
-			}
+    @SuppressWarnings("null")
+    public static OkHttpClient configureClient(final OkHttpClient client) {
+        final TrustManager[] certs = new TrustManager[] { new X509TrustManager() {
 
-			@Override
-			public void checkClientTrusted(final X509Certificate[] chain,
-					final String authType) throws CertificateException {
-			}
-		} };
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
 
-		SSLContext ctx = null;
-		try {
-			ctx = SSLContext.getInstance("TLS");
-			ctx.init(null, certs, new SecureRandom());
-		} catch (final java.security.GeneralSecurityException ex) {
-		}
+            @Override
+            public void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {}
 
-		try {
-			final HostnameVerifier hostnameVerifier = new HostnameVerifier() {
-				@Override
-				public boolean verify(final String hostname,
-						final SSLSession session) {
-					return true;
-				}
-			};
-			client.setHostnameVerifier(hostnameVerifier);
-			client.setSslSocketFactory(ctx.getSocketFactory());
-		} catch (final Exception e) {
-		}
+            @Override
+            public void checkClientTrusted(final X509Certificate[] chain, final String authType) throws CertificateException {}
+        } };
 
-		return client;
-	}
+        SSLContext ctx = null;
+        try {
+            ctx = SSLContext.getInstance("TLS");
+            ctx.init(null, certs, new SecureRandom());
+        } catch (KeyManagementException ex) {
+            LOG.error("Problem occurred in configureClient function", ex);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("No Provider supports a TrustManagerFactorySpi implementation for the specified protocol.", e);
+        }
 
-	public static OkHttpClient createClient() {
-		final OkHttpClient client = new OkHttpClient();
-		return configureClient(client);
-	}
+        try {
+            final HostnameVerifier hostnameVerifier = new HostnameVerifier() {
 
-	@SuppressWarnings("rawtypes")
-	public static Callback createCallback(final String url) {
+                @Override
+                public boolean verify(final String hostname, final SSLSession session) {
+                    return true;
+                }
+            };
+            client.setHostnameVerifier(hostnameVerifier);
+            client.setSslSocketFactory(ctx.getSocketFactory());
+        } catch (final Exception e) {
+            LOG.error("Problem occurred in configureClient function", e);
+        }
 
-		return new Callback() {
-			@Override
-			public void success(final Object o, final Response response) {
-				logger.info("URL : " + url + "\tStatus : "
-						+ response.getStatus());
-			}
+        return client;
+    }
 
-			@Override
-			public void failure(final RetrofitError retrofitError) {
-				logger.info(retrofitError.getMessage());
-			}
-		};
-	}
+    public static OkHttpClient createClient() {
+        final OkHttpClient client = new OkHttpClient();
+        return configureClient(client);
+    }
 
-	public static WebHookService createWebHookService(final String url) {
+    @SuppressWarnings("rawtypes")
+    public static Callback createCallback(final String url) {
 
-		final OkHttpClient client = ProcessorHelper.createClient();
+        return new Callback() {
 
-		final RestAdapter restAdapter = new RestAdapter.Builder()
-				.setEndpoint(url).setClient(new OkClient(client)).build();
+            @Override
+            public void success(final Object o, final Response response) {
+                LOG.info("URL: {}\tStatus: {}", url, response.getStatus());
+            }
 
-		return restAdapter.create(WebHookService.class);
-	}
+            @Override
+            public void failure(final RetrofitError retrofitError) {
+                LOG.info("Error occured.", retrofitError);
+            }
+        };
+    }
+
+    public static WebHookService createWebHookService(final String url) {
+
+        final OkHttpClient client = ProcessorHelper.createClient();
+
+        final RestAdapter restAdapter = new RestAdapter.Builder().setEndpoint(url).setClient(new OkClient(client)).build();
+
+        return restAdapter.create(WebHookService.class);
+    }
 
 }

@@ -19,7 +19,6 @@
 package org.apache.fineract.infrastructure.security.data;
 
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.useradministration.data.RoleData;
 
@@ -93,7 +92,7 @@ public class AuthenticatedUserData {
     }
 
     public AuthenticatedUserData(final String username, final Long userId, final String base64EncodedAuthenticationKey,
-             final boolean isTwoFactorAuthenticationRequired) {
+            final boolean isTwoFactorAuthenticationRequired) {
         this.username = username;
         this.officeId = null;
         this.officeName = null;

@@ -19,7 +19,6 @@
 package org.apache.fineract.portfolio.calendar.domain;
 
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -27,13 +26,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
-import org.joda.time.LocalDate;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_calendar_history")
-public class CalendarHistory extends AbstractPersistableCustom<Long> {
+public class CalendarHistory extends AbstractPersistableCustom {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "calendar_id", referencedColumnName = "id", nullable = false)
@@ -120,21 +118,27 @@ public class CalendarHistory extends AbstractPersistableCustom<Long> {
 
     public boolean isEndDateAfterOrEqual(final LocalDate compareDate) {
         if (this.endDate != null && compareDate != null) {
-            if (getEndDateLocalDate().isAfter(compareDate) || getEndDateLocalDate().isEqual(compareDate)) { return true; }
+            if (getEndDateLocalDate().isAfter(compareDate) || getEndDateLocalDate().isEqual(compareDate)) {
+                return true;
+            }
         }
         return false;
     }
 
     public boolean isStartDateBeforeOrEqual(final LocalDate compareDate) {
         if (this.startDate != null && compareDate != null) {
-            if (getStartDateLocalDate().isBefore(compareDate) || getStartDateLocalDate().equals(compareDate)) { return true; }
+            if (getStartDateLocalDate().isBefore(compareDate) || getStartDateLocalDate().equals(compareDate)) {
+                return true;
+            }
         }
         return false;
     }
 
     public boolean isBetweenStartAndEndDate(final LocalDate compareDate) {
         if (isStartDateBeforeOrEqual(compareDate)) {
-            if (getEndDateLocalDate() == null || isEndDateAfterOrEqual(compareDate)) { return true; }
+            if (getEndDateLocalDate() == null || isEndDateAfterOrEqual(compareDate)) {
+                return true;
+            }
         }
         return false;
     }
@@ -143,8 +147,8 @@ public class CalendarHistory extends AbstractPersistableCustom<Long> {
         this.endDate = historyCalEndDate;
     }
 
-	public Calendar getCalendar() {
-		return this.calendar;
-	}
-        
+    public Calendar getCalendar() {
+        return this.calendar;
+    }
+
 }

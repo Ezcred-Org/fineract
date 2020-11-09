@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.client.service;
 
 import java.util.Collection;
 import java.util.Date;
-
 import org.apache.fineract.infrastructure.core.service.Page;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 import org.apache.fineract.portfolio.client.data.ClientData;
@@ -46,12 +45,8 @@ public interface ClientReadPlatformService {
     Collection<ClientData> retrieveActiveClientMembersOfCenter(final Long centerId);
 
     ClientData retrieveAllNarrations(String clientNarrations);
-    
-	Date retrieveClientTransferProposalDate(Long clientId);
 
-	Date retrieveClientTransferProposalDateByLoan(Long clientId);
+    Date retrieveClientTransferProposalDate(Long clientId);
 
-	Date retrieveClientTransferProposalDateBySavings(Long clientId);
-
-	void validateClient(Long clientId);
+    void validateClient(Long clientId);
 }

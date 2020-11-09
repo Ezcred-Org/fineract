@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.meeting.data;
 
 import java.util.Collection;
 import java.util.List;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.portfolio.calendar.data.CalendarData;
 import org.apache.fineract.portfolio.client.data.ClientData;
@@ -30,7 +29,7 @@ import org.joda.time.LocalDate;
 /**
  * Immutable data object representing a Meeting.
  */
-public class MeetingData {
+public final class MeetingData {
 
     private final Long id;
     private final LocalDate meetingDate;

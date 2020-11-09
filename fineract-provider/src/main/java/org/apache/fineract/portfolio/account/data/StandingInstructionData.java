@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.account.data;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.service.Page;
 import org.apache.fineract.organisation.office.data.OfficeData;
@@ -39,7 +38,7 @@ import org.joda.time.MonthDay;
  * Immutable data object representing a savings account.
  */
 @SuppressWarnings("unused")
-public class StandingInstructionData {
+public final class StandingInstructionData {
 
     private final Long id;
     private final Long accountDetailId;
@@ -262,8 +261,8 @@ public class StandingInstructionData {
                 instructionData.toOffice, instructionData.toClient, instructionData.toAccountType, instructionData.toAccount,
                 instructionData.transferType, instructionData.priority, instructionData.instructionType, instructionData.status,
                 instructionData.amount, instructionData.validFrom, instructionData.validTill, instructionData.recurrenceType,
-                instructionData.recurrenceFrequency, instructionData.recurrenceInterval, instructionData.recurrenceOnMonthDay,
-                transactions, instructionData.fromOfficeOptions, instructionData.fromClientOptions, instructionData.fromAccountTypeOptions,
+                instructionData.recurrenceFrequency, instructionData.recurrenceInterval, instructionData.recurrenceOnMonthDay, transactions,
+                instructionData.fromOfficeOptions, instructionData.fromClientOptions, instructionData.fromAccountTypeOptions,
                 instructionData.fromAccountOptions, instructionData.toOfficeOptions, instructionData.toClientOptions,
                 instructionData.toAccountTypeOptions, instructionData.toAccountOptions, instructionData.transferTypeOptions,
                 instructionData.statusOptions, instructionData.instructionTypeOptions, instructionData.priorityOptions,
@@ -381,7 +380,6 @@ public class StandingInstructionData {
         return this.toClient;
     }
 
-    
     public Long getId() {
         return this.id;
     }

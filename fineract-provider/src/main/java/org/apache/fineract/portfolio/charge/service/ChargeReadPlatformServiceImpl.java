@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.accounting.common.AccountingDropdownReadPlatformService;
 import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
@@ -54,7 +53,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author vishwas
- * 
+ *
  */
 @Service
 public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService {
@@ -108,7 +107,7 @@ public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService 
 
         sql += " order by c.name ";
 
-        return this.jdbcTemplate.query(sql, rm, new Object[] {currencyCode});
+        return this.jdbcTemplate.query(sql, rm, new Object[] { currencyCode });
     }
 
     @Override
@@ -120,10 +119,10 @@ public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService 
 
             sql += addInClauseToSQL_toLimitChargesMappedToOffice_ifOfficeSpecificProductsEnabled();
 
-            sql = sql + " ;" ;
+            sql = sql + " ;";
             return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { chargeId });
         } catch (final EmptyResultDataAccessException e) {
-            throw new ChargeNotFoundException(chargeId);
+            throw new ChargeNotFoundException(chargeId, e);
         }
     }
 
@@ -225,6 +224,7 @@ public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService 
                 sb.append(excludeChargeTimes[i].getValue());
             }
             excludeClause = excludeClause.append(" and c.charge_time_enum not in(" + sb.toString() + ") ");
+            excludeClause.append(" ");
         }
     }
 
@@ -264,7 +264,7 @@ public class ChargeReadPlatformServiceImpl implements ChargeReadPlatformService 
         // charges mapped to current user's office
         String inClause = fineractEntityAccessUtil
                 .getSQLWhereClauseForProductIDsForUserOffice_ifGlobalConfigEnabled(FineractEntityType.CHARGE);
-        if ((inClause != null) && (!(inClause.trim().isEmpty()))) {
+        if ((inClause != null) && !inClause.trim().isEmpty()) {
             sql += " and c.id in ( " + inClause + " ) ";
         }
 

@@ -20,7 +20,6 @@ package org.apache.fineract.infrastructure.sms.api;
 
 import java.util.Collection;
 import java.util.Date;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -33,8 +32,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-
-import io.swagger.annotations.Api;
 import org.apache.fineract.accounting.journalentry.api.DateParam;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
@@ -57,7 +54,7 @@ import org.springframework.stereotype.Component;
 @Produces({ MediaType.APPLICATION_JSON })
 @Component
 @Scope("singleton")
-@Api(value = "SMS", description = "")
+
 public class SmsApiResource {
 
     private final String resourceNameForPermissions = "SMS";
@@ -132,8 +129,8 @@ public class SmsApiResource {
             toDate = toDateParam.getDate("toDate", dateFormat, locale);
         }
 
-        final Page<SmsData> smsMessages = this.readPlatformService.retrieveSmsByStatus(campaignId, searchParameters, status.intValue(), fromDate,
-                toDate);
+        final Page<SmsData> smsMessages = this.readPlatformService.retrieveSmsByStatus(campaignId, searchParameters, status.intValue(),
+                fromDate, toDate);
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         return this.toApiJsonSerializer.serialize(settings, smsMessages);

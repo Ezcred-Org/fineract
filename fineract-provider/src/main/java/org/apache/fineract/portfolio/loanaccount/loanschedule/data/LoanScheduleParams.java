@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepaymentScheduleInstallment;
@@ -32,7 +31,7 @@ import org.apache.fineract.portfolio.loanaccount.domain.transactionprocessor.Loa
 import org.apache.fineract.portfolio.loanaccount.loanschedule.domain.RecalculationDetail;
 import org.joda.time.LocalDate;
 
-public class LoanScheduleParams {
+public final class LoanScheduleParams {
 
     // Actual period Number as per the schedule
     private int periodNumber;
@@ -74,7 +73,6 @@ public class LoanScheduleParams {
     private Money unCompoundedAmount;
     private Money compoundedInLastInstallment;
 
-    
     public Money getCompoundedInLastInstallment() {
         return this.compoundedInLastInstallment;
     }
@@ -467,6 +465,7 @@ public class LoanScheduleParams {
     public Money getUnCompoundedAmount() {
         return this.unCompoundedAmount;
     }
+
     public void addUnCompoundedAmount(Money unCompoundedAmount) {
         this.unCompoundedAmount = this.unCompoundedAmount.plus(unCompoundedAmount);
     }

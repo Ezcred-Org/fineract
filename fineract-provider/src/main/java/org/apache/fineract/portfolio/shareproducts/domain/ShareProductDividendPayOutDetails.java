@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -32,15 +31,13 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
 import org.apache.fineract.portfolio.shareaccounts.domain.ShareAccountDividendDetails;
-import org.apache.fineract.useradministration.domain.AppUser;
 import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_share_product_dividend_pay_out")
-public class ShareProductDividendPayOutDetails extends AbstractAuditableCustom<AppUser, Long> {
+public class ShareProductDividendPayOutDetails extends AbstractAuditableCustom {
 
     @Column(name = "product_id", nullable = true)
     private Long shareProductId;
@@ -59,7 +56,7 @@ public class ShareProductDividendPayOutDetails extends AbstractAuditableCustom<A
     @Column(name = "status", nullable = false)
     private Integer status;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "dividend_pay_out_id", referencedColumnName = "id", nullable = false)
     private List<ShareAccountDividendDetails> accountDividendDetails = new ArrayList<>();
 

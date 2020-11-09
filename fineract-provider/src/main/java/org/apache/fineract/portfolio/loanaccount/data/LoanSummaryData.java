@@ -19,7 +19,6 @@
 package org.apache.fineract.portfolio.loanaccount.data;
 
 import java.math.BigDecimal;
-
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.joda.time.LocalDate;
 
@@ -77,7 +76,7 @@ public class LoanSummaryData {
             final BigDecimal penaltyChargesOverdue, final BigDecimal totalExpectedRepayment, final BigDecimal totalRepayment,
             final BigDecimal totalExpectedCostOfLoan, final BigDecimal totalCostOfLoan, final BigDecimal totalWaived,
             final BigDecimal totalWrittenOff, final BigDecimal totalOutstanding, final BigDecimal totalOverdue,
-            final LocalDate overdueSinceDate,final Long writeoffReasonId,final String writeoffReason) {
+            final LocalDate overdueSinceDate, final Long writeoffReasonId, final String writeoffReason) {
         this.currency = currency;
         this.principalDisbursed = principalDisbursed;
         this.principalPaid = principalPaid;
@@ -119,8 +118,8 @@ public class LoanSummaryData {
     public BigDecimal getTotalOutstanding() {
         return this.totalOutstanding;
     }
-    
+
     public BigDecimal getTotalPaidFeeCharges() {
-        return feeChargesPaid ;
+        return feeChargesPaid;
     }
 }

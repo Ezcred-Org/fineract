@@ -21,7 +21,7 @@ package org.apache.fineract.portfolio.loanaccount.service;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Date;
-
+import java.util.List;
 import org.apache.fineract.infrastructure.core.service.Page;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 import org.apache.fineract.organisation.staff.data.StaffData;
@@ -82,14 +82,13 @@ public interface LoanReadPlatformService {
     Collection<StaffData> retrieveAllowedLoanOfficers(Long selectedOfficeId, boolean staffInSelectedOfficeOnly);
 
     /*
-     * musoni-specific at present - will find overdue scheduled installments
-     * that have a special 'overdue charge' associated with the loan product.
-     * 
-     * The 'overdue-charge' is only ever applied once to an installment and as a
-     * result overdue installments with this charge already applied are not
-     * returned.
+     * musoni-specific at present - will find overdue scheduled installments that have a special 'overdue charge'
+     * associated with the loan product.
+     *
+     * The 'overdue-charge' is only ever applied once to an installment and as a result overdue installments with this
+     * charge already applied are not returned.
      */
-    Collection<OverdueLoanScheduleData> retrieveAllLoansWithOverdueInstallments(final Long penaltyWaitPeriod, final Boolean backdatePenalties);
+    Collection<OverdueLoanScheduleData> retrieveAllLoansWithOverdueInstallments(Long penaltyWaitPeriod, Boolean backdatePenalties);
 
     Integer retriveLoanCounter(Long groupId, Integer loanType, Long productId);
 
@@ -111,6 +110,8 @@ public interface LoanReadPlatformService {
 
     Collection<Long> fetchLoansForInterestRecalculation();
 
+    List<Long> fetchLoansForInterestRecalculation(Integer pageSize, Long maxLoanIdInList, String officeHierarchy);
+
     LoanTransactionData retrieveLoanPrePaymentTemplate(Long loanId, LocalDate onDate);
 
     Collection<LoanTransactionData> retrieveWaiverLoanTransactions(Long loanId);
@@ -124,14 +125,21 @@ public interface LoanReadPlatformService {
     PaidInAdvanceData retrieveTotalPaidInAdvance(Long loanId);
 
     LoanTransactionData retrieveRefundByCashTemplate(Long loanId);
-    
+
     Collection<InterestRatePeriodData> retrieveLoanInterestRatePeriodData(LoanAccountData loan);
 
     Collection<Long> retrieveLoanIdsWithPendingIncomePostingTransactions();
 
-    LoanTransactionData retrieveLoanForeclosureTemplate(final Long loanId, final LocalDate transactionDate);
+    LoanTransactionData retrieveLoanForeclosureTemplate(Long loanId, LocalDate transactionDate);
 
-	LoanAccountData retrieveLoanByLoanAccount(String loanAccountNumber);
-	
-	Long retrieveLoanIdByAccountNumber(String loanAccountNumber);
+    LoanAccountData retrieveLoanByLoanAccount(String loanAccountNumber);
+
+    Long retrieveLoanIdByAccountNumber(String loanAccountNumber);
+
+    String retrieveAccountNumberByAccountId(Long accountId);
+
+    Integer retrieveNumberOfActiveLoans();
+
+    List<LoanAccountData> retrieveGLIMChildLoansByGLIMParentAccount(String parentloanAccountNumber);
+
 }

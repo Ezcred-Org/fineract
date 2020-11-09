@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.savings.domain;
 
 import java.math.BigDecimal;
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -28,16 +27,14 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
-import org.apache.fineract.useradministration.domain.AppUser;
 import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_mandatory_savings_schedule")
-public class RecurringDepositScheduleInstallment extends AbstractAuditableCustom<AppUser, Long> {
+public class RecurringDepositScheduleInstallment extends AbstractAuditableCustom {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "savings_account_id")
@@ -74,7 +71,7 @@ public class RecurringDepositScheduleInstallment extends AbstractAuditableCustom
     private Date obligationsMetOnDate;
 
     /**
-     * 
+     *
      */
     protected RecurringDepositScheduleInstallment() {
         this.installmentNumber = null;
@@ -95,8 +92,8 @@ public class RecurringDepositScheduleInstallment extends AbstractAuditableCustom
      * @param obligationsMet
      * @param obligationsMetOnDate
      */
-    private RecurringDepositScheduleInstallment(final RecurringDepositAccount account, final Integer installmentNumber,
-            final Date fromDate, final Date dueDate, final BigDecimal depositAmount, final BigDecimal depositAmountCompleted,
+    private RecurringDepositScheduleInstallment(final RecurringDepositAccount account, final Integer installmentNumber, final Date fromDate,
+            final Date dueDate, final BigDecimal depositAmount, final BigDecimal depositAmountCompleted,
             final BigDecimal totalPaidInAdvance, final BigDecimal totalPaidLate, final boolean obligationsMet,
             final Date obligationsMetOnDate) {
         this.account = account;
@@ -115,8 +112,8 @@ public class RecurringDepositScheduleInstallment extends AbstractAuditableCustom
             final Date fromDate, final Date dueDate, final BigDecimal depositAmount, final BigDecimal depositAmountCompleted,
             final BigDecimal totalPaidInAdvance, final BigDecimal totalPaidLate, final boolean obligationsMet,
             final Date obligationsMetOnDate) {
-        return new RecurringDepositScheduleInstallment(account, installmentNumber, fromDate, dueDate, depositAmount,
-                depositAmountCompleted, totalPaidInAdvance, totalPaidLate, obligationsMet, obligationsMetOnDate);
+        return new RecurringDepositScheduleInstallment(account, installmentNumber, fromDate, dueDate, depositAmount, depositAmountCompleted,
+                totalPaidInAdvance, totalPaidLate, obligationsMet, obligationsMetOnDate);
     }
 
     public static RecurringDepositScheduleInstallment installment(final RecurringDepositAccount account, final Integer installmentNumber,
@@ -129,8 +126,8 @@ public class RecurringDepositScheduleInstallment extends AbstractAuditableCustom
         final boolean obligationsMet = false;
         final Date obligationsMetOnDate = null;
 
-        return new RecurringDepositScheduleInstallment(account, installmentNumber, fromDate, dueDate, depositAmount,
-                depositAmountCompleted, totalPaidInAdvance, totalPaidLate, obligationsMet, obligationsMetOnDate);
+        return new RecurringDepositScheduleInstallment(account, installmentNumber, fromDate, dueDate, depositAmount, depositAmountCompleted,
+                totalPaidInAdvance, totalPaidLate, obligationsMet, obligationsMetOnDate);
     }
 
     private BigDecimal defaultToNullIfZero(final BigDecimal value) {
@@ -241,8 +238,8 @@ public class RecurringDepositScheduleInstallment extends AbstractAuditableCustom
         this.depositAmount = newDepositAmount;
         this.resetDerivedFields();
     }
-    
+
     public Integer installmentNumber() {
-        return this.installmentNumber ;
+        return this.installmentNumber;
     }
 }

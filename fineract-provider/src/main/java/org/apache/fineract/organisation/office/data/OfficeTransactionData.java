@@ -20,14 +20,13 @@ package org.apache.fineract.organisation.office.data;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.joda.time.LocalDate;
 
 /**
  * Immutable data object for office transactions.
  */
-public class OfficeTransactionData {
+public final class OfficeTransactionData {
 
     @SuppressWarnings("unused")
     private final Long id;

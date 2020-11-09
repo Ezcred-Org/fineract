@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.shareaccounts.service;
 
 import java.util.Collection;
 import java.util.Set;
-
 import org.apache.fineract.portfolio.accounts.service.AccountReadPlatformService;
 import org.apache.fineract.portfolio.shareaccounts.data.ShareAccountData;
 import org.joda.time.LocalDate;
@@ -28,14 +27,16 @@ import org.joda.time.LocalDate;
 public interface ShareAccountReadPlatformService extends AccountReadPlatformService {
 
     @Override
-    public ShareAccountData retrieveTemplate(final Long clientId, final Long productId);
+    ShareAccountData retrieveTemplate(Long clientId, Long productId);
 
     @Override
-    public ShareAccountData retrieveOne(Long id, boolean includeTemplate);
+    ShareAccountData retrieveOne(Long id, boolean includeTemplate);
 
     @Override
-    public Set<String> getResponseDataParams();
+    Set<String> getResponseDataParams();
 
-    Collection<ShareAccountData> retrieveAllShareAccountDataForDividends(Long productId, boolean fetchInActiveAccounts, LocalDate startDate);
+    Collection<ShareAccountData> retrieveAllShareAccountDataForDividends(Long productId, boolean fetchInActiveAccounts,
+            LocalDate startDate);
 
+    String retrieveAccountNumberByAccountId(Long accountId);
 }

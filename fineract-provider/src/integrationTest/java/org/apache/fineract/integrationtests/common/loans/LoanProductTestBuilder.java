@@ -18,16 +18,14 @@
  */
 package org.apache.fineract.integrationtests.common.loans;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.integrationtests.common.Utils;
 import org.apache.fineract.integrationtests.common.accounting.Account;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 public class LoanProductTestBuilder {
 
@@ -116,7 +114,7 @@ public class LoanProductTestBuilder {
     private String graceOnInterestPayment = "1";
     private JsonObject allowAttributeOverrides = null;
     private Boolean allowPartialPeriodInterestCalcualtion = false;
-    
+
     private Boolean allowVariableInstallments = Boolean.FALSE;
     private Integer minimumGap;
     private Integer maximumGap;
@@ -207,13 +205,12 @@ public class LoanProductTestBuilder {
             map.put("allowAttributeOverrides", this.allowAttributeOverrides);
         }
         map.put("allowPartialPeriodInterestCalcualtion", this.allowPartialPeriodInterestCalcualtion);
-        map.put("allowVariableInstallments", allowVariableInstallments) ;
-        if(allowVariableInstallments) {
-            map.put("minimumGap", minimumGap) ;
-            map.put("maximumGap", maximumGap) ;
+        map.put("allowVariableInstallments", allowVariableInstallments);
+        if (allowVariableInstallments) {
+            map.put("minimumGap", minimumGap);
+            map.put("maximumGap", maximumGap);
         }
-        map.put("syncExpectedWithDisbursementDate", 
-        		this.syncExpectedWithDisbursementDate);
+        map.put("syncExpectedWithDisbursementDate", this.syncExpectedWithDisbursementDate);
         return new Gson().toJson(map);
     }
 
@@ -465,7 +462,8 @@ public class LoanProductTestBuilder {
         return this;
     }
 
-    public LoanProductTestBuilder withMinimumDaysBetweenDisbursalAndFirstRepayment(final String minimumDaysBetweenDisbursalAndFirstRepayment) {
+    public LoanProductTestBuilder withMinimumDaysBetweenDisbursalAndFirstRepayment(
+            final String minimumDaysBetweenDisbursalAndFirstRepayment) {
         this.minimumDaysBetweenDisbursalAndFirstRepayment = minimumDaysBetweenDisbursalAndFirstRepayment;
         return this;
     }
@@ -494,17 +492,17 @@ public class LoanProductTestBuilder {
         this.allowAttributeOverrides = loanProductConfigurableAttributes;
         return this;
     }
-    
-    public LoanProductTestBuilder withVariableInstallmentsConfig(Boolean allowVariableInstallments, Integer minimumGap, Integer maximumGap) {
-        this.allowVariableInstallments = allowVariableInstallments ;
+
+    public LoanProductTestBuilder withVariableInstallmentsConfig(Boolean allowVariableInstallments, Integer minimumGap,
+            Integer maximumGap) {
+        this.allowVariableInstallments = allowVariableInstallments;
         this.minimumGap = minimumGap;
         this.maximumGap = maximumGap;
-        return this ;
+        return this;
     }
-    
+
     public LoanProductTestBuilder withSyncExpectedWithDisbursementDate(Boolean syncExpectedWithDisbursementDate) {
-        this.syncExpectedWithDisbursementDate = 
-        		syncExpectedWithDisbursementDate ;
-        return this ;
+        this.syncExpectedWithDisbursementDate = syncExpectedWithDisbursementDate;
+        return this;
     }
 }

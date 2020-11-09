@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.integrationtests.variableinstallments;
 
+import com.google.gson.Gson;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,38 +27,37 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.fineract.integrationtests.common.accounting.Account;
 import org.apache.fineract.integrationtests.common.loans.LoanApplicationTestBuilder;
 import org.apache.fineract.integrationtests.common.loans.LoanProductTestBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class VariableInstallmentsFlatHelper {
 
-    public static String createLoanProductWithVaribleConfig(final boolean multiDisburseLoan, final String accountingRule, final Account... accounts) {
-        System.out.println("------------------------------CREATING NEW LOAN PRODUCT ---------------------------------------");
+    private static final Logger LOG = LoggerFactory.getLogger(VariableInstallmentsFlatHelper.class);
+
+    public static String createLoanProductWithVaribleConfig(final boolean multiDisburseLoan, final String accountingRule,
+            final Account... accounts) {
+        LOG.info("------------------------------CREATING NEW LOAN PRODUCT ---------------------------------------");
         final String loanProductJSON = new LoanProductTestBuilder() //
                 .withPrincipal("1,00,000.00") //
                 .withNumberOfRepayments("4") //
                 .withRepaymentAfterEvery("1") //
                 .withRepaymentTypeAsMonth() //
                 .withinterestRatePerPeriod("1") //
-                .withAmortizationTypeAsEqualPrincipalPayment() 
-                .withInterestTypeAsFlat() //
+                .withAmortizationTypeAsEqualPrincipalPayment().withInterestTypeAsFlat() //
                 .withTranches(multiDisburseLoan) //
                 .withInterestCalculationPeriodTypeAsRepaymentPeriod(true)//
-                .withVariableInstallmentsConfig(Boolean.TRUE, new Integer(5), new Integer(90))//
+                .withVariableInstallmentsConfig(Boolean.TRUE, Integer.valueOf(5), Integer.valueOf(90))//
                 .withAccounting(accountingRule, accounts).build(null);
-        return loanProductJSON ;
+        return loanProductJSON;
     }
-    
-   
-    
+
     public static String applyForLoanApplication(final Integer clientID, final Integer loanProductID, List<HashMap> charges,
             final String savingsId, String principal) {
-        System.out.println("--------------------------------APPLYING FOR LOAN APPLICATION--------------------------------");
+        LOG.info("--------------------------------APPLYING FOR LOAN APPLICATION--------------------------------");
         final String loanApplicationJSON = new LoanApplicationTestBuilder() //
                 .withPrincipal(principal) //
                 .withLoanTermFrequency("4") //
@@ -72,9 +72,9 @@ public class VariableInstallmentsFlatHelper {
                 .withExpectedDisbursementDate("20 September 2011") //
                 .withSubmittedOnDate("20 September 2011") //
                 .withCharges(charges).build(clientID.toString(), loanProductID.toString(), savingsId);
-        return loanApplicationJSON ;
+        return loanApplicationJSON;
     }
-    
+
     public static String createDeleteVariations(ArrayList<Map> deletedInstallments) {
         Map<String, Object> toReturn = new HashMap<>();
         toReturn.put("locale", "en");
@@ -127,7 +127,7 @@ public class VariableInstallmentsFlatHelper {
         String json = new Gson().toJson(toReturn);
         return json;
     }
-    
+
     private static ArrayList createNewInstallments(String date) {
         ArrayList toReturn = new ArrayList<>();
         Map tosend = new HashMap();
@@ -136,7 +136,7 @@ public class VariableInstallmentsFlatHelper {
         toReturn.add(tosend);
         return toReturn;
     }
-    
+
     public static String createModifiyDateVariations(String[] date, String[] newdate, String[] principal) {
         Map<String, Object> toReturn = new HashMap<>();
         toReturn.put("locale", "en");
@@ -147,32 +147,31 @@ public class VariableInstallmentsFlatHelper {
         String json = new Gson().toJson(toReturn);
         return json;
     }
-    
+
     private static ArrayList createDateModifyMap(String[] date, String[] newdate, String[] principal) {
         ArrayList toReturn = new ArrayList<>();
-        for(int i = 0 ; i < date.length; i++) {
+        for (int i = 0; i < date.length; i++) {
             Map tosend = new HashMap();
             tosend.put("dueDate", date[i]);
-            tosend.put("modifiedDueDate", newdate[i]) ;
-            if(i < principal.length) {
-                tosend.put("principal", principal[i]) ;
+            tosend.put("modifiedDueDate", newdate[i]);
+            if (i < principal.length) {
+                tosend.put("principal", principal[i]);
             }
-            toReturn.add(tosend);    
+            toReturn.add(tosend);
         }
         return toReturn;
     }
-    
-    
+
     private static ArrayList createModifyMap(Map firstSchedule) {
         ArrayList toReturn = new ArrayList<>();
         ArrayList dueDate = (ArrayList) firstSchedule.get("dueDate");
         Map tosend = new HashMap();
         tosend.put("dueDate", formatDate(dueDate));
-        tosend.put("principal", 30000) ;
+        tosend.put("principal", 30000);
         toReturn.add(tosend);
         return toReturn;
     }
-    
+
     public static String createAllVariations() {
         Map<String, Object> toReturn = new HashMap<>();
         toReturn.put("locale", "en");
@@ -185,7 +184,7 @@ public class VariableInstallmentsFlatHelper {
         String json = new Gson().toJson(toReturn);
         return json;
     }
-    
+
     private static ArrayList createDeletedMap(String date) {
         ArrayList toReturn = new ArrayList<>();
         Map tosend = new HashMap();
@@ -193,23 +192,23 @@ public class VariableInstallmentsFlatHelper {
         toReturn.add(tosend);
         return toReturn;
     }
-    
+
     private static ArrayList createModifyMap(String date) {
         ArrayList toReturn = new ArrayList<>();
         Map tosend = new HashMap();
         tosend.put("dueDate", date);
-        tosend.put("principal", 30000) ;
+        tosend.put("principal", 30000);
         toReturn.add(tosend);
         return toReturn;
     }
-    
+
     public static String formatDate(ArrayList list) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, (int) list.get(0));
         cal.set(Calendar.MONTH, (int) list.get(1) - 1);
         cal.set(Calendar.DAY_OF_MONTH, (int) list.get(2));
         Date date = cal.getTime();
-        DateFormat requiredFormat = new SimpleDateFormat("dd MMMM YYYY");
+        DateFormat requiredFormat = new SimpleDateFormat("dd MMMM yyyy");
         return requiredFormat.format(date);
     }
 

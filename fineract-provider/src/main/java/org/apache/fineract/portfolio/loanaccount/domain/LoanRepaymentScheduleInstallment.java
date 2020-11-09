@@ -23,7 +23,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,19 +33,18 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.organisation.monetary.domain.Money;
-import org.apache.fineract.useradministration.domain.AppUser;
 import org.joda.time.LocalDate;
 
 @Entity
 @Table(name = "m_loan_repayment_schedule")
-public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCustom<AppUser, Long> implements Comparable<LoanRepaymentScheduleInstallment> {
+public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCustom
+        implements Comparable<LoanRepaymentScheduleInstallment> {
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "loan_id", referencedColumnName="id")
+    @JoinColumn(name = "loan_id", referencedColumnName = "id")
     private Loan loan;
 
     @Column(name = "installment", nullable = false)
@@ -130,11 +128,11 @@ public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCus
     @Column(name = "recalculated_interest_component", nullable = false)
     private boolean recalculatedInterestComponent;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch=FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "loan_repayment_schedule_id", referencedColumnName = "id", nullable = false)
     private Set<LoanInterestRecalcualtionAdditionalDetails> loanCompoundingDetails = new HashSet<>();
-    
-    protected LoanRepaymentScheduleInstallment() {
+
+    LoanRepaymentScheduleInstallment() {
         this.installmentNumber = null;
         this.fromDate = null;
         this.dueDate = null;
@@ -255,8 +253,8 @@ public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCus
     }
 
     public Money getFeeChargesOutstanding(final MonetaryCurrency currency) {
-        final Money feeChargesAccountedFor = getFeeChargesPaid(currency).plus(getFeeChargesWaived(currency)).plus(
-                getFeeChargesWrittenOff(currency));
+        final Money feeChargesAccountedFor = getFeeChargesPaid(currency).plus(getFeeChargesWaived(currency))
+                .plus(getFeeChargesWrittenOff(currency));
         return getFeeChargesCharged(currency).minus(feeChargesAccountedFor);
     }
 
@@ -281,8 +279,8 @@ public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCus
     }
 
     public Money getPenaltyChargesOutstanding(final MonetaryCurrency currency) {
-        final Money feeChargesAccountedFor = getPenaltyChargesPaid(currency).plus(getPenaltyChargesWaived(currency)).plus(
-                getPenaltyChargesWrittenOff(currency));
+        final Money feeChargesAccountedFor = getPenaltyChargesPaid(currency).plus(getPenaltyChargesWaived(currency))
+                .plus(getPenaltyChargesWrittenOff(currency));
         return getPenaltyChargesCharged(currency).minus(feeChargesAccountedFor);
     }
 
@@ -323,7 +321,7 @@ public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCus
     public int compareTo(LoanRepaymentScheduleInstallment o) {
         return this.installmentNumber.compareTo(o.installmentNumber);
     }
-    
+
     public boolean isPrincipalNotCompleted(final MonetaryCurrency currency) {
         return !isPrincipalCompleted(currency);
     }
@@ -350,7 +348,7 @@ public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCus
         this.obligationsMet = false;
         this.obligationsMetOnDate = null;
     }
-    
+
     public void resetAccrualComponents() {
         this.interestAccrued = null;
         this.feeAccrued = null;
@@ -597,8 +595,7 @@ public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCus
         this.obligationsMet = getTotalOutstanding(currency).isZero();
         if (this.obligationsMet) {
             this.obligationsMetOnDate = transactionDate.toDate();
-        }
-        else {
+        } else {
             this.obligationsMetOnDate = null;
         }
     }
@@ -683,9 +680,9 @@ public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCus
 
         return obligationsMetOnDate;
     }
-    
-     /********** UNPAY COMPONENTS ****/
-    
+
+    /********** UNPAY COMPONENTS ****/
+
     public Money unpayPenaltyChargesComponent(final LocalDate transactionDate, final Money transactionAmountRemaining) {
 
         final MonetaryCurrency currency = transactionAmountRemaining.getCurrency();
@@ -767,31 +764,35 @@ public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCus
 
         return principalPortionOfTransactionDeducted;
     }
-    
+
     private void reduceAdvanceAndLateTotalsForRepaymentPeriod(final LocalDate transactionDate, final MonetaryCurrency currency,
             final Money amountDeductedInRepaymentPeriod) {
-    
-        
+
         if (isInAdvance(transactionDate)) {
-                Money mTotalPaidInAdvance = Money.of(currency,this.totalPaidInAdvance);
-            
-                if(mTotalPaidInAdvance.isLessThan(amountDeductedInRepaymentPeriod) || mTotalPaidInAdvance.isEqualTo(amountDeductedInRepaymentPeriod))
-                        this.totalPaidInAdvance = Money.zero(currency).getAmount();
-                else
-                        this.totalPaidInAdvance = mTotalPaidInAdvance.minus(amountDeductedInRepaymentPeriod).getAmount();
+            Money mTotalPaidInAdvance = Money.of(currency, this.totalPaidInAdvance);
+
+            if (mTotalPaidInAdvance.isLessThan(amountDeductedInRepaymentPeriod)
+                    || mTotalPaidInAdvance.isEqualTo(amountDeductedInRepaymentPeriod)) {
+                this.totalPaidInAdvance = Money.zero(currency).getAmount();
+            } else {
+                this.totalPaidInAdvance = mTotalPaidInAdvance.minus(amountDeductedInRepaymentPeriod).getAmount();
+            }
         } else if (isLatePayment(transactionDate)) {
-                Money mTotalPaidLate = Money.of(currency,this.totalPaidLate);
-                
-                if(mTotalPaidLate.isLessThan(amountDeductedInRepaymentPeriod) || mTotalPaidLate.isEqualTo(amountDeductedInRepaymentPeriod))
-                        this.totalPaidLate =  Money.zero(currency).getAmount();
-                else
-                        this.totalPaidLate = mTotalPaidLate.minus(amountDeductedInRepaymentPeriod).getAmount();
+            Money mTotalPaidLate = Money.of(currency, this.totalPaidLate);
+
+            if (mTotalPaidLate.isLessThan(amountDeductedInRepaymentPeriod) || mTotalPaidLate.isEqualTo(amountDeductedInRepaymentPeriod)) {
+                this.totalPaidLate = Money.zero(currency).getAmount();
+            } else {
+                this.totalPaidLate = mTotalPaidLate.minus(amountDeductedInRepaymentPeriod).getAmount();
+            }
         }
     }
-    
+
     public Money getDue(MonetaryCurrency currency) {
-        return getPrincipal(currency).plus(getInterestCharged(currency)).plus(getFeeChargesCharged(currency)).plus(getPenaltyChargesCharged(currency));
+        return getPrincipal(currency).plus(getInterestCharged(currency)).plus(getFeeChargesCharged(currency))
+                .plus(getPenaltyChargesCharged(currency));
     }
+
     public Set<LoanInterestRecalcualtionAdditionalDetails> getLoanCompoundingDetails() {
         return this.loanCompoundingDetails;
     }
@@ -801,7 +802,7 @@ public final class LoanRepaymentScheduleInstallment extends AbstractAuditableCus
                 .plus(getInterestWrittenOff(currency));
         return getInterestAccrued(currency).minus(interestAccountedFor);
     }
-    
+
     public Money getTotalPaid(final MonetaryCurrency currency) {
         return getPenaltyChargesPaid(currency).plus(getFeeChargesPaid(currency)).plus(getInterestPaid(currency))
                 .plus(getPrincipalCompleted(currency));
